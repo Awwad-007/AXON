@@ -179,7 +179,7 @@ function Slider({ label, unit, k, min, max, step, value, onChange, decimals = 2,
 }
 
 const FAULT_SHORT: Record<AssetId, string> = {
-  'bench-dc': 'Imbalance', 'induction-05hp': 'Imbalance', 'slurry-pump': 'Cavitation', 'helical-gearbox': 'Pitting',
+  'bench-dc': 'Imbalance', 'induction-05hp': 'Imbalance', 'slurry-pump': 'Cavitation', 'helical-gearbox': 'Pitting', 'compressor': 'Valve Leak',
 };
 
 export function presetButtons(asset: AssetId): { id: PresetName; label: string }[] {
@@ -194,7 +194,7 @@ export function presetButtons(asset: AssetId): { id: PresetName; label: string }
 export const PRESET_BUTTONS = presetButtons('bench-dc');
 
 const ASSET_LABEL: Record<AssetId, string> = {
-  'bench-dc': 'Bench rig', 'induction-05hp': 'Induction motor', 'slurry-pump': 'Slurry pump', 'helical-gearbox': 'Helical gearbox',
+  'bench-dc': 'Bench rig', 'induction-05hp': 'Induction motor', 'slurry-pump': 'Slurry pump', 'helical-gearbox': 'Helical gearbox', 'compressor': 'MSME Compressor',
 };
 
 interface ControlsProps {

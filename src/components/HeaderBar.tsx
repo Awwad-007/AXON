@@ -31,17 +31,38 @@ interface HeaderBarProps {
   kit: SensorKit;
   xray: boolean;
   onXray: () => void;
+  isAxon?: boolean;
+  onToggleAxon?: () => void;
 }
 
 const ghost = 'flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-line px-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100';
 
-export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onStartWalk, onStopWalk, kit, xray, onXray }: HeaderBarProps) {
+export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onStartWalk, onStopWalk, kit, xray, onXray, isAxon, onToggleAxon }: HeaderBarProps) {
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-line bg-canvas px-3">
       <div className="flex items-baseline gap-2">
         <span className="text-sm font-semibold tracking-tight text-zinc-100">Machynex</span>
         <span className="font-mono text-[11px] text-zinc-500">v1.0-sim</span>
       </div>
+
+      {onToggleAxon && (
+        <div className="flex h-7 shrink-0 items-stretch overflow-hidden rounded-md border border-line" role="group" aria-label="System View">
+          <button
+            onClick={() => isAxon && onToggleAxon()}
+            aria-pressed={!isAxon}
+            className={`px-2.5 text-xs font-medium transition-colors ${!isAxon ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
+          >
+            SCADA
+          </button>
+          <button
+            onClick={() => !isAxon && onToggleAxon()}
+            aria-pressed={isAxon}
+            className={`border-l border-line px-2.5 text-xs font-medium transition-colors ${isAxon ? 'bg-zinc-800 text-acc' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
+          >
+            AXON MSME
+          </button>
+        </div>
+      )}
 
       <div
         className="flex h-7 items-center gap-2 rounded-md border border-line px-2.5"

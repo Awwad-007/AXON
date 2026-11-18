@@ -28,6 +28,8 @@ import { IrPod } from './hardware/TempSensor';
 import { MachineHardware, applyHeat } from './machines/common';
 import { PumpRig } from './machines/PumpRig';
 import { GearboxRig } from './machines/GearboxRig';
+import { CompressorRig, COMPRESSOR_TAP } from './machines/CompressorRig';
+import { GatewayNode, GATEWAY_POS, MeshPing } from './GatewayNode';
 
 // ------------------------------------------------------------------ static rig (does not vibrate)
 const BaseRig = memo(function BaseRig() {
@@ -351,9 +353,13 @@ interface WorldProps {
   kit: SensorKit;
   xray: boolean;
   asset: AssetId;
+  isAxon?: boolean;
 }
 
-function ActiveMachine({ asset, sim, slowMo, kit, hostRef }: { asset: AssetId; sim: Simulator; slowMo: number; kit: SensorKit; hostRef: RefObject<THREE.Group> }) {
+function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon }: { asset: AssetId; sim: Simulator; slowMo: number; kit: SensorKit; hostRef: RefObject<THREE.Group>; isAxon?: boolean }) {
+  if (isAxon || asset === 'compressor') {
+    return <CompressorRig key="compressor" sim={sim} slowMo={slowMo} hostRef={hostRef} />;
+  }
   // keyed by asset: switching unmounts the old machine and R3F disposes its geometries/materials
   switch (asset) {
     case 'slurry-pump': return <PumpRig key={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} />;
@@ -363,7 +369,7 @@ function ActiveMachine({ asset, sim, slowMo, kit, hostRef }: { asset: AssetId; s
   }
 }
 
-function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset }: WorldProps) {
+function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAxon }: WorldProps) {
   const g = useRef<THREE.MeshStandardMaterial>(null);
   const a = useRef<THREE.MeshStandardMaterial>(null);
   const r = useRef<THREE.MeshStandardMaterial>(null);
@@ -399,7 +405,16 @@ function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset }: Wo
       <gridHelper args={[40, 40, '#1e293b', '#12151c']} position={[0, FLOOR_Y, 0]} />
 
       <group ref={baseRef}><BaseRig /></group>
-      <ActiveMachine asset={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} />
+      <ActiveMachine asset={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} isAxon={isAxon} />
+
+      {/* AXON Mesh Gateway & Animated Mesh Telemetry Pings */}
+      {isAxon && (
+        <group>
+          <GatewayNode pos={GATEWAY_POS} rxActive={sim.live.rpm > 100} anomaly={sim.state !== 'NORMAL'} />
+          <MeshPing from={COMPRESSOR_TAP.acoustic} to={GATEWAY_POS} color={sim.state === 'CRITICAL' ? '#ef4444' : sim.state === 'EARLY' ? '#f59e0b' : '#38bdf8'} speed={1.5} active={sim.live.rpm > 100} />
+          <MeshPing from={COMPRESSOR_TAP.pressure} to={GATEWAY_POS} color="#38bdf8" speed={1.0} active={sim.live.rpm > 100} />
+        </group>
+      )}
 
       {/* static Machynex hardware: edge node, 12 V adapter, (concept kit) IR pod on its bracket */}
       <EdgeNode sim={sim} kit={kit} xray={xray} leds={leds} />
@@ -442,6 +457,7 @@ interface ViewportProps {
   selected: HardwareId | null;
   onSelect: (id: HardwareId) => void;
   onAsset: (id: AssetId) => void;
+  isAxon?: boolean;
 }
 
 /** width of an element, tracked with ResizeObserver (0 until measured) */
@@ -471,7 +487,7 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
   );
 }
 
-export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute, alarms, onToggleAlarms, onUserGesture, shot, onFocus, walk, onStopWalk, slowMo, kit, xray, selected, onSelect, onAsset }: ViewportProps) {
+export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute, alarms, onToggleAlarms, onUserGesture, shot, onFocus, walk, onStopWalk, slowMo, kit, xray, selected, onSelect, onAsset, isAxon }: ViewportProps) {
   // the registry is filled by LabelProjector: the minimap reads the camera from it
   const registry = useRef<LabelRegistry>({ points: {}, cam: { x: 0, z: 0, tx: 0, tz: 0 }, size: { w: 1, h: 1 } });
   const pick = useMemo(() => ({ selected, onSelect }), [selected, onSelect]);
@@ -486,7 +502,7 @@ export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute
       <CanvasBoundary>
         <Canvas shadows dpr={[1, 1.75]} camera={{ position: HOME_POS, fov: 38, near: 0.1, far: 100 }} gl={{ antialias: true }}>
           <PickContext.Provider value={pick}>
-            <World sim={sim} slowMo={slowMo} registry={registry} shot={shot} walkActive={walk.active} kit={kit} xray={xray} asset={snap.asset} />
+            <World sim={sim} slowMo={slowMo} registry={registry} shot={shot} walkActive={walk.active} kit={kit} xray={xray} asset={snap.asset} isAxon={isAxon} />
           </PickContext.Provider>
         </Canvas>
       </CanvasBoundary>

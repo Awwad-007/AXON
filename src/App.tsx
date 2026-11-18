@@ -13,6 +13,9 @@ import type { HardwareId } from './sim/hardwareSpecs';
 import { ASSETS } from './sim/assets';
 import type { AssetId } from './sim/assets';
 import { useAnomaly } from './sim/useAnomaly';
+import { useCalibration } from './sim/useCalibration';
+import { useAgentFlow } from './sim/agentFlow';
+import { MockPhoneUI } from './components/MockPhoneUI';
 
 /** Honesty banner (CLAUDE.md §3.1). Always visible; tests/design-rules.test.ts asserts it is present. */
 export const BANNER_TEXT = 'PROPOSED CONCEPT · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED';
@@ -50,6 +53,47 @@ export default function App() {
     setShot(makeShot('rig', id));
   }, [walk.active, stopWalkthrough, setAsset]);
 
+  const [isAxonMode, setIsAxonMode] = useState(true);
+
+  const toggleAxonMode = useCallback(() => {
+    setIsAxonMode((prev) => {
+      const next = !prev;
+      if (next) {
+        setAsset('compressor');
+        focus('home');
+      } else {
+        setAsset('bench-dc');
+        focus('home');
+      }
+      return next;
+    });
+  }, [setAsset, focus]);
+
+  const calib = useCalibration(snap);
+  const dyn = isAxonMode ? calib.isDynamicAnomaly(snap) : { anomaly: false, reason: '' };
+
+  const agent = useAgentFlow({
+    anomaly: isAxonMode ? dyn.anomaly : snap.state !== 'NORMAL',
+    reason: isAxonMode ? dyn.reason : snap.stateLabel,
+    onApprove: useCallback(() => {
+      sim.setTarget('severity', 0);
+      sim.resetRelay();
+    }, [sim]),
+    onReject: useCallback(() => {
+      calib.widenEnvelope();
+    }, [calib]),
+  });
+
+  const triggerTestAnomaly = useCallback(() => {
+    unlock();
+    sim.setTarget('severity', 0.85);
+  }, [unlock, sim]);
+
+  const resetAgentSession = useCallback(() => {
+    agent.clearChat();
+    resetAll();
+  }, [agent, resetAll]);
+
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-canvas">
       <div className="flex h-[22px] shrink-0 items-center justify-center border-b border-line bg-canvas px-3" role="note">
@@ -68,38 +112,86 @@ export default function App() {
         kit={effectiveKit}
         xray={xray}
         onXray={() => setXray((v) => !v)}
+        isAxon={isAxonMode}
+        onToggleAxon={toggleAxonMode}
       />
-      <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[55%_45%] lg:h-[calc(100dvh-66px)] lg:grid-cols-[60%_40%] lg:grid-rows-1">
-        <div className="relative min-h-0 border-b border-line lg:border-b-0 lg:border-r">
-          <Viewport
-            sim={sim}
-            snap={snap}
-            paused={paused}
-            onTogglePause={() => setPaused(!paused)}
-            muted={muted}
-            onToggleMute={() => setMuted(!muted)}
-            alarms={alarms}
-            onToggleAlarms={() => setAlarms(!alarms)}
-            onUserGesture={unlock}
-            shot={shot}
-            onFocus={focus}
-            walk={walk}
-            onStopWalk={stopWalkthrough}
-            slowMo={slowMo}
-            kit={effectiveKit}
-            xray={xray}
-            selected={inspect}
-            onSelect={setInspect}
-            onAsset={switchAsset}
-          />
-        </div>
-        <div className="relative min-h-0">
-          <div className="scroll-thin h-full overflow-y-auto bg-canvas">
-            <DashboardPane sim={sim} snap={snap} logs={logs} onUserGesture={unlock} slowMo={slowMo} onSlowMo={setSlowMo} kit={effectiveKit} onInspect={setInspect} ml={ml} walkScene={walk.active ? walk.scene : 0} />
+      {isAxonMode ? (
+        <main className="relative min-h-0 flex-1 lg:h-[calc(100dvh-66px)]">
+          <div className="relative h-full w-full">
+            <Viewport
+              sim={sim}
+              snap={snap}
+              paused={paused}
+              onTogglePause={() => setPaused(!paused)}
+              muted={muted}
+              onToggleMute={() => setMuted(!muted)}
+              alarms={alarms}
+              onToggleAlarms={() => setAlarms(!alarms)}
+              onUserGesture={unlock}
+              shot={shot}
+              onFocus={focus}
+              walk={walk}
+              onStopWalk={stopWalkthrough}
+              slowMo={slowMo}
+              kit={effectiveKit}
+              xray={xray}
+              selected={inspect}
+              onSelect={setInspect}
+              onAsset={switchAsset}
+              isAxon={true}
+            />
+            <MockPhoneUI
+              msgs={agent.msgs}
+              typing={agent.typing}
+              step={agent.step}
+              calibrating={calib.calibrating}
+              calibrated={calib.calibrated}
+              calibProgress={calib.progress}
+              calibDay={calib.day}
+              stats={calib.stats}
+              kMultiplier={calib.kMultiplier}
+              onApprove={agent.handleApprove}
+              onReject={agent.handleReject}
+              onCalibrate={calib.calibrate}
+              onTriggerAnomaly={triggerTestAnomaly}
+              onReset={resetAgentSession}
+            />
           </div>
-          <InspectorDrawer id={inspect} kit={effectiveKit} onKit={setKit} kitLocked={ASSETS[snap.asset].sensorKit !== 'bench'} snap={snap} onClose={closeInspector} />
-        </div>
-      </main>
+        </main>
+      ) : (
+        <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[55%_45%] lg:h-[calc(100dvh-66px)] lg:grid-cols-[60%_40%] lg:grid-rows-1">
+          <div className="relative min-h-0 border-b border-line lg:border-b-0 lg:border-r">
+            <Viewport
+              sim={sim}
+              snap={snap}
+              paused={paused}
+              onTogglePause={() => setPaused(!paused)}
+              muted={muted}
+              onToggleMute={() => setMuted(!muted)}
+              alarms={alarms}
+              onToggleAlarms={() => setAlarms(!alarms)}
+              onUserGesture={unlock}
+              shot={shot}
+              onFocus={focus}
+              walk={walk}
+              onStopWalk={stopWalkthrough}
+              slowMo={slowMo}
+              kit={effectiveKit}
+              xray={xray}
+              selected={inspect}
+              onSelect={setInspect}
+              onAsset={switchAsset}
+              isAxon={false}
+            />
+          </div>
+          <div className="relative min-h-0">
+            <div className="scroll-thin h-full overflow-y-auto bg-canvas">
+              <DashboardPane sim={sim} snap={snap} logs={logs} onUserGesture={unlock} slowMo={slowMo} onSlowMo={setSlowMo} kit={effectiveKit} onInspect={setInspect} ml={ml} walkScene={walk.active ? walk.scene : 0} />
+            </div>
+            <InspectorDrawer id={inspect} kit={effectiveKit} onKit={setKit} kitLocked={ASSETS[snap.asset].sensorKit !== 'bench'} snap={snap} onClose={closeInspector} />
+          </div>
+        </main>
+      )}
     </div>
   );
 }

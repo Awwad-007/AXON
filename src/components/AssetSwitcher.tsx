@@ -12,6 +12,7 @@ export const ASSET_SHORT: Record<AssetId, string> = {
   'induction-05hp': 'Induction',
   'slurry-pump': 'Pump',
   'helical-gearbox': 'Gearbox',
+  'compressor': 'Compressor',
 };
 
 /** long explanation shown only inside the (i) popover */

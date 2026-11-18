@@ -157,4 +157,5 @@ export const RIGS: Record<AssetId, RigLayout> = {
   'induction-05hp': BENCH_RIG,
   'slurry-pump': PUMP_RIG,
   'helical-gearbox': GEAR_RIG,
+  'compressor': BENCH_RIG,
 };

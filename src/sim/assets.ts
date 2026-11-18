@@ -8,7 +8,7 @@
 import { CONFIG as C } from './config';
 import type { SensorKit } from './mounts';
 
-export type AssetId = 'bench-dc' | 'induction-05hp' | 'slurry-pump' | 'helical-gearbox';
+export type AssetId = 'bench-dc' | 'induction-05hp' | 'slurry-pump' | 'helical-gearbox' | 'compressor';
 export const ASSET_IDS: AssetId[] = ['bench-dc', 'induction-05hp', 'slurry-pump', 'helical-gearbox'];
 
 export const CONCEPT_ASSET_TAG = 'CONCEPT · illustrative fault model · not validated';
@@ -199,11 +199,58 @@ const GEARBOX: AssetProfile = {
   gear: { pinionTeeth: GEAR_PINION, gearTeeth: GEAR_WHEEL, note: 'assumed tooth counts (illustrative)' },
 };
 
+export const COMPRESSOR: AssetProfile = {
+  id: 'compressor',
+  name: 'MSME Reciprocating Air Compressor',
+  shortName: 'Compressor',
+  scope: 'concept',
+  machine: 'Twin-Cylinder Reciprocating Compressor (AXON)',
+  nominal: { rpm: 1450, current: 4.2, temp: 48 },
+  limits: { rpm: [800, 1800], current: [1.5, 9.0], temp: [25, 95] },
+  th: {
+    vibWarn: 2.8,
+    vibCrit: 4.5,
+    zones: [1.4, 2.8, 4.5] as const,
+    gaugeMax: 7.0,
+    tempWarn: 65,
+    tempCrit: 80,
+    tempCorroborate: 58,
+    curCrit: 6.8,
+    curCorroborate: 5.5,
+  },
+  faultName: 'Discharge Valve Leakage & Pressure Loss',
+  faultControl: 'severity',
+  severityOf: (sp) => sp.severity,
+  vib: (sp, rpm) => {
+    const s = sp.severity;
+    const base = 0.9 + s * 4.2;
+    const k = rpm / 1450;
+    return base * k * k;
+  },
+  currentDelta: (s) => s * 2.1,
+  tempDelta: (s) => s * 26,
+  spectrum: {
+    maxHz: 500,
+    model: 'unbalance',
+    floor: (s) => 0.03 + 0.09 * s,
+    peaks: (f1, s) => [
+      { f: f1, amp: 0.35 + 0.5 * s, sigma: 1.5 },
+      { f: f1 * 2, amp: 0.25 + 0.8 * s, sigma: 2.0 },
+      { f: f1 * 4, amp: 0.12 + 0.6 * s, sigma: 2.5 },
+    ],
+  },
+  presets: { progressiveTo: 0.52, critical: { fault: 0.95, currentA: 7.2, tempC: 84 } },
+  coulombRpmPerS: coulombFor(1450),
+  sensorKit: 'industrial',
+  conceptNote: 'MSME dual-cylinder air compressor concept rig with AXON acoustic and pressure mesh monitoring.',
+};
+
 export const ASSETS: Record<AssetId, AssetProfile> = {
   'bench-dc': BENCH,
   'induction-05hp': INDUCTION,
   'slurry-pump': PUMP,
   'helical-gearbox': GEARBOX,
+  'compressor': COMPRESSOR,
 };
 
 export const DEFAULT_ASSET: AssetId = 'bench-dc';
