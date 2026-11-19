@@ -20,6 +20,8 @@ export function cameraPresets(kit: SensorKit): { id: ShotName; label: string }[]
   ];
 }
 
+export type AppMode = 'scada' | 'axon-sim' | 'axon-live';
+
 interface HeaderBarProps {
   state: HealthState;
   activeShot: ShotName | null;
@@ -31,13 +33,15 @@ interface HeaderBarProps {
   kit: SensorKit;
   xray: boolean;
   onXray: () => void;
+  mode?: AppMode;
+  onModeChange?: (mode: AppMode) => void;
   isAxon?: boolean;
   onToggleAxon?: () => void;
 }
 
 const ghost = 'flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-line px-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100';
 
-export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onStartWalk, onStopWalk, kit, xray, onXray, isAxon, onToggleAxon }: HeaderBarProps) {
+export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onStartWalk, onStopWalk, kit, xray, onXray, mode = 'axon-sim', onModeChange, isAxon, onToggleAxon }: HeaderBarProps) {
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-line bg-canvas px-3">
       <div className="flex items-baseline gap-2">
@@ -45,21 +49,28 @@ export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onS
         <span className="font-mono text-[11px] text-zinc-500">v1.0-sim</span>
       </div>
 
-      {onToggleAxon && (
+      {(onModeChange || onToggleAxon) && (
         <div className="flex h-7 shrink-0 items-stretch overflow-hidden rounded-md border border-line" role="group" aria-label="System View">
           <button
-            onClick={() => isAxon && onToggleAxon()}
-            aria-pressed={!isAxon}
-            className={`px-2.5 text-xs font-medium transition-colors ${!isAxon ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
+            onClick={() => onModeChange ? onModeChange('scada') : onToggleAxon?.()}
+            aria-pressed={mode === 'scada'}
+            className={`px-2.5 text-xs font-medium transition-colors ${mode === 'scada' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
           >
             SCADA
           </button>
           <button
-            onClick={() => !isAxon && onToggleAxon()}
-            aria-pressed={isAxon}
-            className={`border-l border-line px-2.5 text-xs font-medium transition-colors ${isAxon ? 'bg-zinc-800 text-acc' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
+            onClick={() => onModeChange ? onModeChange('axon-sim') : onToggleAxon?.()}
+            aria-pressed={mode === 'axon-sim'}
+            className={`border-l border-line px-2.5 text-xs font-medium transition-colors ${mode === 'axon-sim' ? 'bg-zinc-800 text-acc' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
           >
-            AXON MSME
+            AXON SIM
+          </button>
+          <button
+            onClick={() => onModeChange ? onModeChange('axon-live') : onToggleAxon?.()}
+            aria-pressed={mode === 'axon-live'}
+            className={`border-l border-line px-2.5 text-xs font-medium transition-colors ${mode === 'axon-live' ? 'bg-zinc-800 text-emerald-400' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'}`}
+          >
+            AXON LIVE MIC
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import type { CameraShot, ShotName } from './sim/shots';
 import { Viewport } from './components/Scene';
 import { DashboardPane } from './components/Dashboard';
 import { HeaderBar } from './components/HeaderBar';
+import type { AppMode } from './components/HeaderBar';
 import { InspectorDrawer } from './components/InspectorDrawer';
 import { CONFIG } from './sim/config';
 import type { SensorKit } from './sim/mounts';
@@ -16,6 +17,7 @@ import { useAnomaly } from './sim/useAnomaly';
 import { useCalibration } from './sim/useCalibration';
 import { useAgentFlow } from './sim/agentFlow';
 import { MockPhoneUI } from './components/MockPhoneUI';
+import { Tier1MicMode } from './components/Tier1MicMode';
 
 /** Honesty banner (CLAUDE.md §3.1). Always visible; tests/design-rules.test.ts asserts it is present. */
 export const BANNER_TEXT = 'PROPOSED CONCEPT · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED';
@@ -53,28 +55,26 @@ export default function App() {
     setShot(makeShot('rig', id));
   }, [walk.active, stopWalkthrough, setAsset]);
 
-  const [isAxonMode, setIsAxonMode] = useState(true);
+  const [mode, setMode] = useState<AppMode>('axon-sim');
 
-  const toggleAxonMode = useCallback(() => {
-    setIsAxonMode((prev) => {
-      const next = !prev;
-      if (next) {
-        setAsset('compressor');
-        focus('home');
-      } else {
-        setAsset('bench-dc');
-        focus('home');
-      }
-      return next;
-    });
+  const handleModeChange = useCallback((next: AppMode) => {
+    setMode(next);
+    if (next === 'axon-sim') {
+      setAsset('compressor');
+      focus('home');
+    } else if (next === 'scada') {
+      setAsset('bench-dc');
+      focus('home');
+    }
   }, [setAsset, focus]);
 
   const calib = useCalibration(snap);
-  const dyn = isAxonMode ? calib.isDynamicAnomaly(snap) : { anomaly: false, reason: '' };
+  const isAxonSim = mode === 'axon-sim';
+  const dyn = isAxonSim ? calib.isDynamicAnomaly(snap) : { anomaly: false, reason: '' };
 
   const agent = useAgentFlow({
-    anomaly: isAxonMode ? dyn.anomaly : snap.state !== 'NORMAL',
-    reason: isAxonMode ? dyn.reason : snap.stateLabel,
+    anomaly: isAxonSim ? dyn.anomaly : snap.state !== 'NORMAL',
+    reason: isAxonSim ? dyn.reason : snap.stateLabel,
     onApprove: useCallback(() => {
       sim.setTarget('severity', 0);
       sim.resetRelay();
@@ -112,10 +112,14 @@ export default function App() {
         kit={effectiveKit}
         xray={xray}
         onXray={() => setXray((v) => !v)}
-        isAxon={isAxonMode}
-        onToggleAxon={toggleAxonMode}
+        mode={mode}
+        onModeChange={handleModeChange}
       />
-      {isAxonMode ? (
+      {mode === 'axon-live' ? (
+        <main className="relative min-h-0 flex-1 lg:h-[calc(100dvh-66px)]">
+          <Tier1MicMode />
+        </main>
+      ) : mode === 'axon-sim' ? (
         <main className="relative min-h-0 flex-1 lg:h-[calc(100dvh-66px)]">
           <div className="relative h-full w-full">
             <Viewport
