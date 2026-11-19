@@ -72,8 +72,85 @@ export const MockPhoneUI = memo(function MockPhoneUI({
       ? 'Work order confirmed'
       : 'Online · Factory Mesh';
 
+  const n1 = step !== 'IDLE' && step !== 'FALSE_ALARM';
+  const n2 = n1 && step !== 'ANOMALY_DETECTED';
+  const n3 = n2 && step !== 'SCHEDULING';
+  const n4 = step === 'COMMS' || step === 'WAITING_USER_APPROVAL' || step === 'BOOKED';
+
   return (
     <div className="fixed bottom-4 right-4 z-40 w-[350px] max-w-[calc(100vw-32px)]">
+      {/* 2D Dispatch Pipeline Visual Strip */}
+      <div className="mb-2 rounded-md border border-line bg-panel p-2 font-mono">
+        <div className="mb-1.5 flex items-center justify-between text-[9px] uppercase tracking-wider text-zinc-400">
+          <span className="font-semibold text-zinc-300">DISPATCH PIPELINE</span>
+          <span className={`text-[8.5px] ${step !== 'IDLE' && step !== 'FALSE_ALARM' ? 'font-semibold text-amber-400' : 'text-zinc-500'}`}>
+            {step === 'IDLE'
+              ? 'STANDBY'
+              : step === 'BOOKED'
+              ? 'DISPATCH CONFIRMED'
+              : step === 'FALSE_ALARM'
+              ? 'RECALIBRATED'
+              : 'TRANSMITTING'}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-1 text-[8px]">
+          {/* Node 1: Sensor Fault */}
+          <div
+            className={`flex flex-1 flex-col items-center rounded-sm border px-1 py-1 text-center transition-colors ${
+              n1
+                ? 'border-amber-500/70 bg-amber-950/40 text-amber-300'
+                : 'border-zinc-800 bg-zinc-900/60 text-zinc-500'
+            }`}
+          >
+            <span className="font-semibold">1. SENSOR</span>
+            <span className="text-[7.5px] opacity-80">FAULT</span>
+          </div>
+
+          <div className={`h-px w-2 shrink-0 transition-colors ${n2 ? 'bg-sky-400' : 'bg-zinc-800'}`} />
+
+          {/* Node 2: ESP-NOW Gateway */}
+          <div
+            className={`flex flex-1 flex-col items-center rounded-sm border px-1 py-1 text-center transition-colors ${
+              n2
+                ? 'border-sky-500/70 bg-sky-950/40 text-sky-300'
+                : 'border-zinc-800 bg-zinc-900/60 text-zinc-500'
+            }`}
+          >
+            <span className="font-semibold">2. ESP-NOW</span>
+            <span className="text-[7.5px] opacity-80">GATEWAY</span>
+          </div>
+
+          <div className={`h-px w-2 shrink-0 transition-colors ${n3 ? 'bg-sky-400' : 'bg-zinc-800'}`} />
+
+          {/* Node 3: Cloud Agent */}
+          <div
+            className={`flex flex-1 flex-col items-center rounded-sm border px-1 py-1 text-center transition-colors ${
+              n3
+                ? 'border-sky-500/70 bg-sky-950/40 text-sky-300'
+                : 'border-zinc-800 bg-zinc-900/60 text-zinc-500'
+            }`}
+          >
+            <span className="font-semibold">3. CLOUD</span>
+            <span className="text-[7.5px] opacity-80">AGENT</span>
+          </div>
+
+          <div className={`h-px w-2 shrink-0 transition-colors ${n4 ? 'bg-emerald-400' : 'bg-zinc-800'}`} />
+
+          {/* Node 4: WhatsApp Sent */}
+          <div
+            className={`flex flex-1 flex-col items-center rounded-sm border px-1 py-1 text-center transition-colors ${
+              n4
+                ? 'border-emerald-500/70 bg-emerald-950/40 text-emerald-300'
+                : 'border-zinc-800 bg-zinc-900/60 text-zinc-500'
+            }`}
+          >
+            <span className="font-semibold">4. WHATSAPP</span>
+            <span className="text-[7.5px] opacity-80">{step === 'BOOKED' ? 'DISPATCHED' : 'SENT'}</span>
+          </div>
+        </div>
+      </div>
+
       {/* Phone Outer Chassis */}
       <div className="rounded-md border border-line bg-panel p-1.5">
         {/* Phone Top Bezel with Speaker & Camera */}

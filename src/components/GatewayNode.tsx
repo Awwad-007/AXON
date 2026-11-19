@@ -24,29 +24,42 @@ export const MeshPing = memo(function MeshPing({
   speed?: number;
   active?: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const start = useMemo(() => new THREE.Vector3(...from), [from]);
   const end = useMemo(() => new THREE.Vector3(...to), [to]);
   const cur = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state) => {
-    if (!meshRef.current || !active) return;
+    if (!groupRef.current || !active) return;
     const progress = (state.clock.elapsedTime * speed) % 1;
-    // Parabolic arc above the machinery
+    // Smooth parabolic arc above the machinery
     cur.lerpVectors(start, end, progress);
-    cur.y += Math.sin(progress * Math.PI) * 0.45;
-    meshRef.current.position.copy(cur);
-    const s = Math.sin(progress * Math.PI) * 0.045 + 0.015;
-    meshRef.current.scale.set(s, s, s);
+    cur.y += Math.sin(progress * Math.PI) * 0.75;
+    groupRef.current.position.copy(cur);
+    const s = Math.sin(progress * Math.PI) * 0.08 + 0.035;
+    groupRef.current.scale.set(s, s, s);
   });
 
   if (!active) return null;
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[1, 12, 12]} />
-      <meshBasicMaterial color={color} />
-    </mesh>
+    <group ref={groupRef}>
+      {/* Inner Bright Core */}
+      <mesh>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {/* Colored Outer Glow Shell */}
+      <mesh scale={[1.7, 1.7, 1.7]}>
+        <sphereGeometry args={[1, 14, 14]} />
+        <meshBasicMaterial color={color} transparent opacity={0.75} />
+      </mesh>
+      {/* Wider Ambient Pulse Halo */}
+      <mesh scale={[2.6, 2.6, 2.6]}>
+        <sphereGeometry args={[1, 12, 12]} />
+        <meshBasicMaterial color={color} transparent opacity={0.25} />
+      </mesh>
+    </group>
   );
 });
 
@@ -215,17 +228,13 @@ export const GatewayNode = memo(function GatewayNode({
 
       {/* Floating 3D HTML Label */}
       {showLabel && (
-        <Html position={[0, 0.65, 0]} center distanceFactor={14} className="pointer-events-none select-none">
+        <Html position={[0, 0.45, 0]} center distanceFactor={14} className="pointer-events-none select-none">
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 rounded-sm border border-line bg-panel px-2.5 py-1 font-mono text-[10px] whitespace-nowrap">
+            <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
               <span className={`h-1.5 w-1.5 shrink-0 rounded-sm ${anomaly ? 'bg-crit' : 'bg-ok'}`} />
-              <div className="flex flex-col">
-                <span className="font-semibold text-zinc-200">GW-01 · AXON MESH GATEWAY</span>
-                <span className="text-[9px] text-zinc-400">ESP-NOW Ch: 06 · RSSI: -52 dBm · [SYNC]</span>
-              </div>
+              <span className="font-semibold text-zinc-200">GW-01 · GATEWAY</span>
             </div>
-            <div className="h-4 w-px bg-zinc-600/70" />
-            <div className="h-1 w-1 rounded-sm bg-zinc-400" />
+            <div className="h-2 w-px bg-zinc-600/70" />
           </div>
         </Html>
       )}

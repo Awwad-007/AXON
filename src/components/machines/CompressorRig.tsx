@@ -358,17 +358,13 @@ export const CompressorRig = memo(function CompressorRig({
 
         {/* Floating 3D HTML Label on Main Compressor Head */}
         {showLabels && (
-          <Html position={[0.28, 1.78, 0]} center distanceFactor={14} className="pointer-events-none select-none">
+          <Html position={[0.2, 1.85, -0.15]} center distanceFactor={14} className="pointer-events-none select-none">
             <div className="flex flex-col items-center">
-              <div className="flex items-center gap-2 rounded-sm border border-line bg-panel px-2.5 py-1 font-mono text-[10px] whitespace-nowrap">
+              <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
                 <span className={`h-1.5 w-1.5 shrink-0 rounded-sm ${sim.state === 'CRITICAL' ? 'bg-crit' : sim.state === 'EARLY' ? 'bg-warn' : 'bg-ok'}`} />
-                <div className="flex flex-col">
-                  <span className="font-semibold text-zinc-200">AXON COMPRESSOR · C-01</span>
-                  <span className="text-[9px] text-zinc-400">MSME Dual-Stage Reciprocating · 1450 RPM</span>
-                </div>
+                <span className="font-semibold text-zinc-200">C-01 COMPRESSOR</span>
               </div>
-              <div className="h-4 w-px bg-zinc-600/70" />
-              <div className="h-1 w-1 rounded-sm bg-zinc-400" />
+              <div className="h-2 w-px bg-zinc-600/70" />
             </div>
           </Html>
         )}

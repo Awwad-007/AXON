@@ -43,17 +43,13 @@ export const PressureSensor = memo(function PressureSensor({
 
       {/* Floating 3D HTML Label */}
       {showLabel && (
-        <Html position={[0, 0.42, 0]} center distanceFactor={14} className="pointer-events-none select-none">
+        <Html position={[-0.22, 0.25, 0]} center distanceFactor={14} className="pointer-events-none select-none">
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 rounded-sm border border-line bg-panel px-2 py-1 font-mono text-[10px] whitespace-nowrap">
+            <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
               <span className="h-1.5 w-1.5 shrink-0 rounded-sm bg-acc" />
-              <div className="flex flex-col">
-                <span className="font-semibold text-zinc-200">PT-01 · PRESSURE TRANSDUCER</span>
-                <span className="text-[9px] text-zinc-400">Discharge: 8.2 bar · [STABLE]</span>
-              </div>
+              <span className="font-semibold text-zinc-200">PT-01 · PRESSURE</span>
             </div>
-            <div className="h-3.5 w-px bg-zinc-600/70" />
-            <div className="h-1 w-1 rounded-sm bg-zinc-400" />
+            <div className="h-2 w-px bg-zinc-600/70" />
           </div>
         </Html>
       )}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { useSimulator } from './sim/useSimulator';
 import { useWalkthrough } from './sim/walkthrough';
 import { makeShot } from './sim/shots';
@@ -56,6 +57,7 @@ export default function App() {
   }, [walk.active, stopWalkthrough, setAsset]);
 
   const [mode, setMode] = useState<AppMode>('axon-sim');
+  const [showDemoGuide, setShowDemoGuide] = useState(true);
 
   useEffect(() => {
     if (mode === 'axon-sim') {
@@ -150,6 +152,31 @@ export default function App() {
               onAsset={switchAsset}
               isAxon={true}
             />
+            {showDemoGuide && !walk.active && (
+              <div className="pointer-events-auto absolute left-3 top-14 z-30 w-full max-w-[260px] rounded-md border border-line bg-panel p-2.5 font-mono text-[11px]">
+                <div className="mb-2 flex items-center justify-between border-b border-line pb-1.5">
+                  <span className="font-semibold tracking-wider text-zinc-200">HOW TO DEMO AXON</span>
+                  <button
+                    onClick={() => setShowDemoGuide(false)}
+                    className="rounded-sm p-0.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                    aria-label="Dismiss demo guide"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                <ol className="space-y-1.5 text-[10px] leading-relaxed text-zinc-400">
+                  <li>
+                    <span className="font-semibold text-acc">Step 1:</span> Click <b className="text-zinc-200">Calibrate 7-Day</b> (bottom right) to learn the machine's baseline.
+                  </li>
+                  <li>
+                    <span className="font-semibold text-amber-400">Step 2:</span> Click <b className="text-zinc-200">Test Anomaly</b> to fire an ESP-NOW mesh ping to the gateway.
+                  </li>
+                  <li>
+                    <span className="font-semibold text-emerald-400">Step 3:</span> Reply <b className="text-zinc-200">Yes</b> (books mechanic &amp; resets) or <b className="text-zinc-200">No</b> (widens baseline) in the phone.
+                  </li>
+                </ol>
+              </div>
+            )}
             <MockPhoneUI
               msgs={agent.msgs}
               typing={agent.typing}

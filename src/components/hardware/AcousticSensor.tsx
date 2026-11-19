@@ -70,17 +70,13 @@ export const AcousticSensor = memo(function AcousticSensor({
 
       {/* Floating 3D HTML Label */}
       {showLabel && (
-        <Html position={[0, 0.38, 0]} center distanceFactor={14} className="pointer-events-none select-none">
+        <Html position={[0.22, 0.22, 0.1]} center distanceFactor={14} className="pointer-events-none select-none">
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 rounded-sm border border-line bg-panel px-2 py-1 font-mono text-[10px] whitespace-nowrap">
+            <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
               <span className={`h-1.5 w-1.5 shrink-0 rounded-sm ${active ? 'bg-warn' : 'bg-ok'}`} />
-              <div className="flex flex-col">
-                <span className="font-semibold text-zinc-200">AE-01 · ACOUSTIC SENSOR</span>
-                <span className="text-[9px] text-zinc-400">Ultrasonic Flutter: 28.4 kHz</span>
-              </div>
+              <span className="font-semibold text-zinc-200">AE-01 · ACOUSTIC</span>
             </div>
-            <div className="h-3.5 w-px bg-zinc-600/70" />
-            <div className="h-1 w-1 rounded-sm bg-zinc-400" />
+            <div className="h-2 w-px bg-zinc-600/70" />
           </div>
         </Html>
       )}

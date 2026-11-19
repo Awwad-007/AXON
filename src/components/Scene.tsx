@@ -354,11 +354,12 @@ interface WorldProps {
   xray: boolean;
   asset: AssetId;
   isAxon?: boolean;
+  showLabels?: boolean;
 }
 
-function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon }: { asset: AssetId; sim: Simulator; slowMo: number; kit: SensorKit; hostRef: RefObject<THREE.Group>; isAxon?: boolean }) {
+function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon, showLabels }: { asset: AssetId; sim: Simulator; slowMo: number; kit: SensorKit; hostRef: RefObject<THREE.Group>; isAxon?: boolean; showLabels?: boolean }) {
   if (isAxon || asset === 'compressor') {
-    return <CompressorRig key="compressor" sim={sim} slowMo={slowMo} hostRef={hostRef} />;
+    return <CompressorRig key="compressor" sim={sim} slowMo={slowMo} hostRef={hostRef} showLabels={showLabels} />;
   }
   // keyed by asset: switching unmounts the old machine and R3F disposes its geometries/materials
   switch (asset) {
@@ -369,7 +370,7 @@ function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon }: { asset: As
   }
 }
 
-function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAxon }: WorldProps) {
+function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAxon, showLabels }: WorldProps) {
   const g = useRef<THREE.MeshStandardMaterial>(null);
   const a = useRef<THREE.MeshStandardMaterial>(null);
   const r = useRef<THREE.MeshStandardMaterial>(null);
@@ -405,12 +406,12 @@ function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAx
       <gridHelper args={[40, 40, '#1e293b', '#12151c']} position={[0, FLOOR_Y, 0]} />
 
       <group ref={baseRef}><BaseRig /></group>
-      <ActiveMachine asset={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} isAxon={isAxon} />
+      <ActiveMachine asset={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} isAxon={isAxon} showLabels={showLabels} />
 
       {/* AXON Mesh Gateway & Animated Mesh Telemetry Pings */}
       {isAxon && (
         <group>
-          <GatewayNode pos={GATEWAY_POS} rxActive={sim.live.rpm > 100} anomaly={sim.state !== 'NORMAL'} />
+          <GatewayNode pos={GATEWAY_POS} rxActive={sim.live.rpm > 100} anomaly={sim.state !== 'NORMAL'} showLabel={showLabels} />
           <MeshPing from={COMPRESSOR_TAP.acoustic} to={GATEWAY_POS} color={sim.state === 'CRITICAL' ? '#ef4444' : sim.state === 'EARLY' ? '#f59e0b' : '#38bdf8'} speed={1.5} active={sim.live.rpm > 100} />
           <MeshPing from={COMPRESSOR_TAP.pressure} to={GATEWAY_POS} color="#38bdf8" speed={1.0} active={sim.live.rpm > 100} />
         </group>
@@ -496,13 +497,14 @@ export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute
   // minimap: collapsed by default on canvases narrower than 1280 px; the user's toggle wins afterwards
   const [mapOpen, setMapOpen] = useState<boolean | null>(null);
   const mapExpanded = mapOpen ?? (width >= 1280);
+  const [showLabels, setShowLabels] = useState(false);
 
   return (
     <div ref={box} className="relative h-full w-full bg-canvas" onPointerDown={onUserGesture}>
       <CanvasBoundary>
         <Canvas shadows dpr={[1, 1.75]} camera={{ position: HOME_POS, fov: 38, near: 0.1, far: 100 }} gl={{ antialias: true }}>
           <PickContext.Provider value={pick}>
-            <World sim={sim} slowMo={slowMo} registry={registry} shot={shot} walkActive={walk.active} kit={kit} xray={xray} asset={snap.asset} isAxon={isAxon} />
+            <World sim={sim} slowMo={slowMo} registry={registry} shot={shot} walkActive={walk.active} kit={kit} xray={xray} asset={snap.asset} isAxon={isAxon} showLabels={showLabels} />
           </PickContext.Provider>
         </Canvas>
       </CanvasBoundary>
@@ -526,7 +528,17 @@ export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute
             kitPreview={ASSETS[snap.asset].scope === 'proposal' && kit === 'industrial'}
           />
         </div>
-        <div className="justify-self-end">
+        <div className="flex items-center gap-1.5 justify-self-end">
+          {isAxon && (
+            <button
+              onClick={() => setShowLabels((v) => !v)}
+              className="pointer-events-auto font-mono flex h-7 items-center gap-1 rounded-md border border-line bg-panel px-2 text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors"
+              title="Toggle 3D HUD Labels"
+            >
+              <span>Labels:</span>
+              <span className={showLabels ? 'font-semibold text-acc' : 'text-zinc-500'}>{showLabels ? 'ON' : 'OFF'}</span>
+            </button>
+          )}
           {xray && <span className="font-mono flex h-7 items-center rounded-md border border-line bg-panel px-2 text-[11px] text-zinc-300">X-RAY</span>}
         </div>
       </div>
