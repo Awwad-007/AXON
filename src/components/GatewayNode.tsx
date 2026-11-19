@@ -73,11 +73,15 @@ export const GatewayNode = memo(function GatewayNode({
   rxActive = true,
   anomaly = false,
   showLabel = true,
+  selectedId = null,
+  onSelectId,
 }: {
   pos?: V3;
   rxActive?: boolean;
   anomaly?: boolean;
   showLabel?: boolean;
+  selectedId?: string | null;
+  onSelectId?: (id: string | null) => void;
 }) {
   const [x, y, z] = pos;
   const pwrMat = useRef<THREE.MeshStandardMaterial>(null);
@@ -228,11 +232,29 @@ export const GatewayNode = memo(function GatewayNode({
 
       {/* Floating 3D HTML Label */}
       {showLabel && (
-        <Html position={[0, 0.45, 0]} center distanceFactor={14} className="pointer-events-none select-none">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
+        <Html
+          position={[0, 0.45, 0]}
+          center
+          distanceFactor={13}
+          className="pointer-events-auto select-none cursor-pointer"
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectId?.(selectedId === 'gw01' ? null : 'gw01');
+            }}
+            className="flex flex-col items-center group"
+          >
+            <div
+              className={`flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[9px] font-semibold whitespace-nowrap transition-transform duration-150 hover:scale-105 ${
+                selectedId === 'gw01'
+                  ? 'border-white bg-[#18181b] text-white ring-1 ring-white/50'
+                  : 'border-line bg-[#111317]/95 text-zinc-300 hover:border-zinc-500'
+              }`}
+              style={{ borderColor: selectedId === 'gw01' ? '#10b981' : undefined }}
+            >
               <span className={`h-1.5 w-1.5 shrink-0 rounded-sm ${anomaly ? 'bg-crit' : 'bg-ok'}`} />
-              <span className="font-semibold text-zinc-200">GW-01 · GATEWAY</span>
+              <span>GW-01</span>
             </div>
             <div className="h-2 w-px bg-zinc-600/70" />
           </div>

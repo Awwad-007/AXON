@@ -280,6 +280,21 @@ export const EdgeNode = memo(function EdgeNode({ sim, kit, xray, leds }: { sim: 
           </group>
         ))}
 
+        {/* 4 Sensor Channel Terminal Indicators (VB, CT, AE, PT) */}
+        {[
+          { name: 'VB', col: '#38bdf8', x: CX - 0.42 },
+          { name: 'CT', col: '#f59e0b', x: CX - 0.35 },
+          { name: 'AE', col: '#10b981', x: CX - 0.28 },
+          { name: 'PT', col: '#a78bfa', x: CX - 0.21 },
+        ].map((ch, i) => (
+          <group key={i} position={[ch.x, PCB_Y + 0.055, bz + 0.17]}>
+            <mesh>
+              <boxGeometry args={[0.022, 0.015, 0.022]} />
+              <meshStandardMaterial color={ch.col} emissive={ch.col} emissiveIntensity={2.5} />
+            </mesh>
+          </group>
+        ))}
+
         {/* tinted polycarbonate lid with hex fasteners (slides open in X-ray) */}
         <group ref={lid}>
           <mesh position={[CX, TOP + 0.034, CZ]}>

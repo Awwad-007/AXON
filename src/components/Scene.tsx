@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Edges, OrbitControls } from '@react-three/drei';
+import { Edges, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Bell, BellOff, Pause, Play, Volume2, VolumeX } from 'lucide-react';
@@ -355,11 +355,43 @@ interface WorldProps {
   asset: AssetId;
   isAxon?: boolean;
   showLabels?: boolean;
+  selectedComponentId?: string | null;
+  onSelectComponent?: (id: string | null) => void;
 }
 
-function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon, showLabels }: { asset: AssetId; sim: Simulator; slowMo: number; kit: SensorKit; hostRef: RefObject<THREE.Group>; isAxon?: boolean; showLabels?: boolean }) {
+function ActiveMachine({
+  asset,
+  sim,
+  slowMo,
+  kit,
+  hostRef,
+  isAxon,
+  showLabels,
+  selectedId,
+  onSelectId,
+}: {
+  asset: AssetId;
+  sim: Simulator;
+  slowMo: number;
+  kit: SensorKit;
+  hostRef: RefObject<THREE.Group>;
+  isAxon?: boolean;
+  showLabels?: boolean;
+  selectedId?: string | null;
+  onSelectId?: (id: string | null) => void;
+}) {
   if (isAxon || asset === 'compressor') {
-    return <CompressorRig key="compressor" sim={sim} slowMo={slowMo} hostRef={hostRef} showLabels={showLabels} />;
+    return (
+      <CompressorRig
+        key="compressor"
+        sim={sim}
+        slowMo={slowMo}
+        hostRef={hostRef}
+        showLabels={showLabels}
+        selectedId={selectedId}
+        onSelectId={onSelectId}
+      />
+    );
   }
   // keyed by asset: switching unmounts the old machine and R3F disposes its geometries/materials
   switch (asset) {
@@ -370,7 +402,7 @@ function ActiveMachine({ asset, sim, slowMo, kit, hostRef, isAxon, showLabels }:
   }
 }
 
-function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAxon, showLabels }: WorldProps) {
+function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAxon, showLabels, selectedComponentId, onSelectComponent }: WorldProps) {
   const g = useRef<THREE.MeshStandardMaterial>(null);
   const a = useRef<THREE.MeshStandardMaterial>(null);
   const r = useRef<THREE.MeshStandardMaterial>(null);
@@ -406,19 +438,70 @@ function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAx
       <gridHelper args={[40, 40, '#1e293b', '#12151c']} position={[0, FLOOR_Y, 0]} />
 
       <group ref={baseRef}><BaseRig /></group>
-      <ActiveMachine asset={asset} sim={sim} slowMo={slowMo} kit={kit} hostRef={hostRef} isAxon={isAxon} showLabels={showLabels} />
+      <ActiveMachine
+        asset={asset}
+        sim={sim}
+        slowMo={slowMo}
+        kit={kit}
+        hostRef={hostRef}
+        isAxon={isAxon}
+        showLabels={showLabels}
+        selectedId={selectedComponentId}
+        onSelectId={onSelectComponent}
+      />
 
       {/* AXON Mesh Gateway & Animated Mesh Telemetry Pings */}
       {isAxon && (
         <group>
-          <GatewayNode pos={GATEWAY_POS} rxActive={sim.live.rpm > 100} anomaly={sim.state !== 'NORMAL'} showLabel={showLabels} />
-          <MeshPing from={COMPRESSOR_TAP.acoustic} to={GATEWAY_POS} color={sim.state === 'CRITICAL' ? '#ef4444' : sim.state === 'EARLY' ? '#f59e0b' : '#38bdf8'} speed={1.5} active={sim.live.rpm > 100} />
-          <MeshPing from={COMPRESSOR_TAP.pressure} to={GATEWAY_POS} color="#38bdf8" speed={1.0} active={sim.live.rpm > 100} />
+          <GatewayNode
+            pos={GATEWAY_POS}
+            rxActive={sim.live.rpm > 100}
+            anomaly={sim.state !== 'NORMAL'}
+            showLabel={showLabels}
+            selectedId={selectedComponentId}
+            onSelectId={onSelectComponent}
+          />
+          <MeshPing
+            from={[0.2, 0.25, 2.0]}
+            to={GATEWAY_POS}
+            color={sim.state === 'CRITICAL' ? '#ef4444' : sim.state === 'EARLY' ? '#f59e0b' : '#38bdf8'}
+            speed={1.5}
+            active={sim.live.rpm > 100}
+          />
         </group>
       )}
 
       {/* static AXON hardware: edge node, 12 V adapter, (concept kit) IR pod on its bracket */}
       <EdgeNode sim={sim} kit={kit} xray={xray} leds={leds} />
+      {isAxon && showLabels && (
+        <Html
+          position={[0.2, 0.28, 2.35]}
+          center
+          distanceFactor={13}
+          className="pointer-events-auto select-none cursor-pointer"
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectComponent?.(selectedComponentId === 'node01' ? null : 'node01');
+            }}
+            className="flex flex-col items-center group"
+          >
+            <div
+              className={`flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[9px] font-semibold whitespace-nowrap transition-transform duration-150 hover:scale-105 ${
+                selectedComponentId === 'node01'
+                  ? 'border-white bg-[#18181b] text-white ring-1 ring-white/50'
+                  : 'border-line bg-[#111317]/95 text-zinc-300 hover:border-zinc-500'
+              }`}
+              style={{ borderColor: selectedComponentId === 'node01' ? '#38bdf8' : undefined }}
+            >
+              <span className="h-1.5 w-1.5 shrink-0 rounded-sm bg-[#38bdf8]" />
+              <span>NODE-01</span>
+            </div>
+            <div className="h-2 w-px bg-zinc-600/70" />
+          </div>
+        </Html>
+      )}
       <Box size={[0.8, 0.26, 0.5]} pos={[-1.9, FLOOR_Y + 0.13, 2.3]} color="#27272a" metal={0.2} rough={0.7} />
       <Cable points={HARNESS.supply} radius={0.025} />
       {kit === 'industrial' && (
@@ -459,6 +542,8 @@ interface ViewportProps {
   onSelect: (id: HardwareId) => void;
   onAsset: (id: AssetId) => void;
   isAxon?: boolean;
+  selectedComponentId?: string | null;
+  onSelectComponent?: (id: string | null) => void;
 }
 
 /** width of an element, tracked with ResizeObserver (0 until measured) */
@@ -488,7 +573,30 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
   );
 }
 
-export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute, alarms, onToggleAlarms, onUserGesture, shot, onFocus, walk, onStopWalk, slowMo, kit, xray, selected, onSelect, onAsset, isAxon }: ViewportProps) {
+export function Viewport({
+  sim,
+  snap,
+  paused,
+  onTogglePause,
+  muted,
+  onToggleMute,
+  alarms,
+  onToggleAlarms,
+  onUserGesture,
+  shot,
+  onFocus,
+  walk,
+  onStopWalk,
+  slowMo,
+  kit,
+  xray,
+  selected,
+  onSelect,
+  onAsset,
+  isAxon,
+  selectedComponentId,
+  onSelectComponent,
+}: ViewportProps) {
   // the registry is filled by LabelProjector: the minimap reads the camera from it
   const registry = useRef<LabelRegistry>({ points: {}, cam: { x: 0, z: 0, tx: 0, tz: 0 }, size: { w: 1, h: 1 } });
   const pick = useMemo(() => ({ selected, onSelect }), [selected, onSelect]);
@@ -504,7 +612,20 @@ export function Viewport({ sim, snap, paused, onTogglePause, muted, onToggleMute
       <CanvasBoundary>
         <Canvas shadows dpr={[1, 1.75]} camera={{ position: HOME_POS, fov: 38, near: 0.1, far: 100 }} gl={{ antialias: true }}>
           <PickContext.Provider value={pick}>
-            <World sim={sim} slowMo={slowMo} registry={registry} shot={shot} walkActive={walk.active} kit={kit} xray={xray} asset={snap.asset} isAxon={isAxon} showLabels={showLabels} />
+            <World
+              sim={sim}
+              slowMo={slowMo}
+              registry={registry}
+              shot={shot}
+              walkActive={walk.active}
+              kit={kit}
+              xray={xray}
+              asset={snap.asset}
+              isAxon={isAxon}
+              showLabels={showLabels}
+              selectedComponentId={selectedComponentId}
+              onSelectComponent={onSelectComponent}
+            />
           </PickContext.Provider>
         </Canvas>
       </CanvasBoundary>

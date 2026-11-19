@@ -41,12 +41,16 @@ export const CompressorRig = memo(function CompressorRig({
   sim,
   slowMo,
   hostRef,
-  showLabels = true,
+  showLabels = false,
+  selectedId = null,
+  onSelectId,
 }: {
   sim: Simulator;
   slowMo: number;
   hostRef: RefObject<THREE.Group>;
   showLabels?: boolean;
+  selectedId?: string | null;
+  onSelectId?: (id: string | null) => void;
 }) {
   const rot = useRef<THREE.Group>(null);
   const { mach } = useMachineMotion(sim, slowMo, [{ ref: rot, ratio: 1.0 }]);
@@ -56,47 +60,86 @@ export const CompressorRig = memo(function CompressorRig({
   // Cooling fins for the twin cylinders (stacked discs)
   const finDiscs = useMemo(() => [-0.1, -0.06, -0.02, 0.02, 0.06, 0.1], []);
 
+  // VB-01 Vibration pod mount on drive motor bearing housing
   const puckMount = useMemo(
     () => ({
-      pos: COMPRESSOR_TAP.vibration,
-      normal: [0, 1, 0] as [number, number, number],
-      axis: [1, 0, 0] as [number, number, number],
+      pos: [-0.72, 1.08, 0] as [number, number, number],
+      normal: [-1, 0, 0] as [number, number, number],
+      axis: [0, 1, 0] as [number, number, number],
     }),
     []
   );
 
-  // Procedural wiring routes connecting sensors back to local junction box
+  // Local junction box position on deck plate
   const jBoxPos: [number, number, number] = [-0.08, 0.88, 0.22];
 
-  const acousticCablePoints = useMemo<[number, number, number][]>(
+  // 1. VB-01 (Vibration Pod) Cable: Cyan (#38bdf8) -> JB-01
+  const vbCablePoints = useMemo<[number, number, number][]>(
     () => [
-      [COMPRESSOR_TAP.acoustic[0], COMPRESSOR_TAP.acoustic[1] + 0.22, COMPRESSOR_TAP.acoustic[2]],
-      [COMPRESSOR_TAP.acoustic[0], COMPRESSOR_TAP.acoustic[1] + 0.3, COMPRESSOR_TAP.acoustic[2] + 0.08],
-      [0.2, 1.45, 0.24],
-      [0.05, 1.15, 0.25],
-      [jBoxPos[0] + 0.08, jBoxPos[1] + 0.04, jBoxPos[2]],
+      [-0.72, 1.08, 0],
+      [-0.72, 1.2, 0.1],
+      [-0.5, 1.15, 0.18],
+      [-0.28, 0.98, 0.22],
+      [jBoxPos[0] - 0.09, jBoxPos[1] + 0.04, jBoxPos[2]],
     ],
     [jBoxPos]
   );
 
-  const pressureCablePoints = useMemo<[number, number, number][]>(
+  // 2. CT-01 (Current Clamp) Cable: Amber (#f59e0b) -> JB-01
+  const ctCablePoints = useMemo<[number, number, number][]>(
+    () => [
+      [-0.45, 1.28, 0.14],
+      [-0.38, 1.12, 0.2],
+      [-0.22, 0.96, 0.22],
+      [jBoxPos[0] - 0.06, jBoxPos[1] + 0.04, jBoxPos[2]],
+    ],
+    [jBoxPos]
+  );
+
+  // 3. TP-01 (Temperature Probe) Cable: Rose (#f43f5e) -> JB-01
+  const tpCablePoints = useMemo<[number, number, number][]>(
+    () => [
+      [0.18, 1.18, 0.2],
+      [0.12, 1.04, 0.24],
+      [0.02, 0.94, 0.23],
+      [jBoxPos[0] + 0.04, jBoxPos[1] + 0.04, jBoxPos[2]],
+    ],
+    [jBoxPos]
+  );
+
+  // 4. AE-01 (Acoustic Sensor) Cable: Emerald (#10b981) -> JB-01
+  const aeCablePoints = useMemo<[number, number, number][]>(
+    () => [
+      [COMPRESSOR_TAP.acoustic[0], COMPRESSOR_TAP.acoustic[1] + 0.15, COMPRESSOR_TAP.acoustic[2]],
+      [COMPRESSOR_TAP.acoustic[0], COMPRESSOR_TAP.acoustic[1] + 0.28, COMPRESSOR_TAP.acoustic[2] + 0.06],
+      [0.22, 1.35, 0.24],
+      [0.08, 1.1, 0.25],
+      [jBoxPos[0] + 0.09, jBoxPos[1] + 0.04, jBoxPos[2]],
+    ],
+    [jBoxPos]
+  );
+
+  // 5. PT-01 (Pressure Transducer) Cable: Violet (#a78bfa) -> JB-01
+  const ptCablePoints = useMemo<[number, number, number][]>(
     () => [
       [COMPRESSOR_TAP.pressure[0], COMPRESSOR_TAP.pressure[1] + 0.28, COMPRESSOR_TAP.pressure[2]],
       [COMPRESSOR_TAP.pressure[0] + 0.08, COMPRESSOR_TAP.pressure[1] + 0.35, COMPRESSOR_TAP.pressure[2]],
-      [-0.4, 0.96, 0.26],
-      [-0.22, 0.92, 0.24],
-      [jBoxPos[0] - 0.08, jBoxPos[1] + 0.04, jBoxPos[2]],
+      [-0.42, 0.94, 0.26],
+      [-0.22, 0.9, 0.23],
+      [jBoxPos[0] - 0.09, jBoxPos[1] - 0.02, jBoxPos[2]],
     ],
     [jBoxPos]
   );
 
+  // 6. JB-01 to NODE-01 Thick Braided Trunk Conduit
   const trunkConduitPoints = useMemo<[number, number, number][]>(
     () => [
-      [jBoxPos[0], jBoxPos[1] - 0.06, jBoxPos[2]],
-      [jBoxPos[0], 0.76, jBoxPos[2] + 0.08],
-      [-0.2, 0.55, 0.35],
-      [-0.45, 0.2, 0.42],
-      [-0.65, 0.04, 0.55],
+      [jBoxPos[0], jBoxPos[1] - 0.07, jBoxPos[2]],
+      [jBoxPos[0], 0.65, jBoxPos[2] + 0.1],
+      [-0.06, 0.38, 0.45],
+      [0.02, 0.15, 0.85],
+      [0.1, 0.05, 1.35],
+      [0.2, -0.05, 1.78],
     ],
     [jBoxPos]
   );
@@ -329,45 +372,113 @@ export const CompressorRig = memo(function CompressorRig({
           <Box size={[0.008, 0.05, 0.004]} pos={[0.015, 0.035, 0.025]} color="#ef4444" metal={0.5} rough={0.5} />
         </group>
 
-        {/* --- Local Die-Cast Aluminum Junction Box --- */}
+        {/* --- Local Die-Cast Aluminum Junction Box (JB-01) --- */}
         <group position={jBoxPos}>
-          <Box size={[0.18, 0.12, 0.12]} pos={[0, 0, 0]} color="#27272a" metal={0.68} rough={0.32} />
-          {/* Glands for incoming sensor cables */}
-          <Cyl r={0.018} len={0.03} pos={[0.08, 0.02, 0]} axis="x" color="#111827" metal={0.2} rough={0.8} />
-          <Cyl r={0.018} len={0.03} pos={[-0.08, 0.02, 0]} axis="x" color="#111827" metal={0.2} rough={0.8} />
-          <Cyl r={0.024} len={0.03} pos={[0, -0.06, 0]} color="#111827" metal={0.2} rough={0.8} />
+          <Box
+            size={[0.22, 0.14, 0.14]}
+            pos={[0, 0, 0]}
+            color={selectedId === 'jb01' ? '#38bdf8' : '#27272a'}
+            metal={0.7}
+            rough={0.3}
+          />
+          {/* Incoming glands for all 5 sensor cables */}
+          <Cyl r={0.014} len={0.025} pos={[-0.11, 0.04, 0.03]} axis="x" color="#38bdf8" metal={0.4} rough={0.6} />
+          <Cyl r={0.014} len={0.025} pos={[-0.11, 0.04, -0.03]} axis="x" color="#f59e0b" metal={0.4} rough={0.6} />
+          <Cyl r={0.014} len={0.025} pos={[0.11, 0.04, 0.03]} axis="x" color="#10b981" metal={0.4} rough={0.6} />
+          <Cyl r={0.014} len={0.025} pos={[0.11, 0.04, -0.03]} axis="x" color="#f43f5e" metal={0.4} rough={0.6} />
+          <Cyl r={0.014} len={0.025} pos={[-0.11, -0.03, 0]} axis="x" color="#a78bfa" metal={0.4} rough={0.6} />
+          {/* Main heavy braided trunk gland at bottom */}
+          <Cyl r={0.028} len={0.035} pos={[0, -0.07, 0]} color="#111827" metal={0.5} rough={0.5} />
+        </group>
+
+        {/* --- CT-01 Current Clamp on Motor Power Conduit --- */}
+        <group position={[-0.45, 1.28, 0.14]} rotation={[0, 0, Math.PI / 4]}>
+          <mesh castShadow>
+            <torusGeometry args={[0.045, 0.018, 12, 28]} />
+            <meshStandardMaterial
+              color={selectedId === 'ct01' ? '#f59e0b' : '#1e3a8a'}
+              metalness={0.25}
+              roughness={0.5}
+            />
+          </mesh>
+          <Box size={[0.025, 0.04, 0.02]} pos={[0.045, 0, 0]} color="#d97706" metal={0.8} rough={0.3} />
+        </group>
+
+        {/* --- TP-01 Temperature Sensor Probe on Cylinder Casting --- */}
+        <group position={[0.18, 1.18, 0.2]} rotation={[0, 0, Math.PI / 2]}>
+          <Cyl
+            r={0.014}
+            len={0.12}
+            pos={[0, 0, 0]}
+            color={selectedId === 'tp01' ? '#f43f5e' : '#cbd5e1'}
+            metal={0.9}
+            rough={0.25}
+          />
+          <Cyl r={0.018} len={0.025} pos={[0, 0.05, 0]} color="#9ca3af" metal={0.8} rough={0.3} />
         </group>
 
         {/* --- Procedural Wiring Cables connecting Sensors to Junction Box --- */}
-        {/* Acoustic Sensor Cable */}
-        <Cable points={acousticCablePoints} radius={0.012} color="#18181b" metal={0.15} rough={0.8} />
-        {/* Pressure Sensor Cable */}
-        <Cable points={pressureCablePoints} radius={0.012} color="#18181b" metal={0.15} rough={0.8} />
-        {/* Trunk Braided Conduit down to rig base */}
-        <Cable points={trunkConduitPoints} radius={0.018} texture={braid} metal={0.7} rough={0.35} />
+        {/* VB-01 Vibration cable: Cyan */}
+        <Cable points={vbCablePoints} radius={selectedId === 'vb01' ? 0.016 : 0.011} color="#38bdf8" metal={0.3} rough={0.6} />
+        {/* CT-01 Current clamp cable: Amber */}
+        <Cable points={ctCablePoints} radius={selectedId === 'ct01' ? 0.016 : 0.011} color="#f59e0b" metal={0.3} rough={0.6} />
+        {/* TP-01 Temperature probe cable: Rose */}
+        <Cable points={tpCablePoints} radius={selectedId === 'tp01' ? 0.016 : 0.010} color="#f43f5e" metal={0.3} rough={0.6} />
+        {/* AE-01 Acoustic sensor cable: Emerald */}
+        <Cable points={aeCablePoints} radius={selectedId === 'ae01' ? 0.016 : 0.011} color="#10b981" metal={0.3} rough={0.6} />
+        {/* PT-01 Pressure transducer cable: Violet */}
+        <Cable points={ptCablePoints} radius={selectedId === 'pt01' ? 0.016 : 0.011} color="#a78bfa" metal={0.3} rough={0.6} />
+        {/* Thick Braided Trunk Conduit directly from JB-01 into NODE-01 */}
+        <Cable points={trunkConduitPoints} radius={selectedId === 'jb01' ? 0.026 : 0.02} texture={braid} color="#e2e8f0" metal={0.7} rough={0.35} />
 
         {/* --- Mounted AXON MSME Sensors --- */}
         {/* Acoustic sensor on discharge bridge */}
-        <AcousticSensor pos={COMPRESSOR_TAP.acoustic} rot={[0, 0, 0]} active={sim.live.vibMeas > 1.8} showLabel={showLabels} />
+        <AcousticSensor pos={COMPRESSOR_TAP.acoustic} rot={[0, 0, 0]} active={sim.live.vibMeas > 1.8} showLabel={false} />
 
         {/* Piezoresistive pressure sensor on tank manifold */}
-        <PressureSensor pos={COMPRESSOR_TAP.pressure} rot={[0, 0, 0]} showLabel={showLabels} />
+        <PressureSensor pos={COMPRESSOR_TAP.pressure} rot={[0, 0, 0]} showLabel={false} />
 
-        {/* Industrial Vibration Puck on compressor head */}
+        {/* VB-01 Industrial Vibration Puck on drive motor bearing housing */}
         <VibrationPuck mount={puckMount} />
 
-        {/* Floating 3D HTML Label on Main Compressor Head */}
-        {showLabels && (
-          <Html position={[0.2, 1.85, -0.15]} center distanceFactor={14} className="pointer-events-none select-none">
-            <div className="flex flex-col items-center">
-              <div className="flex items-center gap-1.5 rounded-sm border border-line bg-panel/95 px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap">
-                <span className={`h-1.5 w-1.5 shrink-0 rounded-sm ${sim.state === 'CRITICAL' ? 'bg-crit' : sim.state === 'EARLY' ? 'bg-warn' : 'bg-ok'}`} />
-                <span className="font-semibold text-zinc-200">C-01 COMPRESSOR</span>
+        {/* 3D ID Pills for Mounted Components */}
+        {showLabels && [
+          { id: 'vb01', code: 'VB-01', color: '#38bdf8', pos: [-0.72, 1.36, 0] as [number, number, number] },
+          { id: 'ct01', code: 'CT-01', color: '#f59e0b', pos: [-0.45, 1.52, 0.14] as [number, number, number] },
+          { id: 'tp01', code: 'TP-01', color: '#f43f5e', pos: [0.18, 1.4, 0.2] as [number, number, number] },
+          { id: 'ae01', code: 'AE-01', color: '#10b981', pos: [0.35, 1.66, 0.12] as [number, number, number] },
+          { id: 'pt01', code: 'PT-01', color: '#a78bfa', pos: [-0.65, 0.92, 0.28] as [number, number, number] },
+          { id: 'jb01', code: 'JB-01', color: '#94a3b8', pos: [-0.08, 1.08, 0.22] as [number, number, number] },
+        ].map((pill) => (
+          <Html
+            key={pill.id}
+            position={pill.pos}
+            center
+            distanceFactor={13}
+            className="pointer-events-auto select-none cursor-pointer"
+          >
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectId?.(selectedId === pill.id ? null : pill.id);
+              }}
+              className="flex flex-col items-center group"
+            >
+              <div
+                className={`flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[9px] font-semibold whitespace-nowrap transition-transform duration-150 hover:scale-105 ${
+                  selectedId === pill.id
+                    ? 'border-white bg-[#18181b] text-white ring-1 ring-white/50'
+                    : 'border-line bg-[#111317]/95 text-zinc-300 hover:border-zinc-500'
+                }`}
+                style={{ borderColor: selectedId === pill.id ? pill.color : undefined }}
+              >
+                <span className="h-1.5 w-1.5 shrink-0 rounded-sm" style={{ backgroundColor: pill.color }} />
+                <span>{pill.code}</span>
               </div>
               <div className="h-2 w-px bg-zinc-600/70" />
             </div>
           </Html>
-        )}
+        ))}
       </group>
     </group>
   );
