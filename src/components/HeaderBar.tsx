@@ -4,7 +4,7 @@ import type { ShotName } from '../sim/shots';
 import type { SensorKit } from '../sim/mounts';
 import { ViewMenu } from './ViewMenu';
 
-export const NODE_ID = 'MNX-EDGE-01';
+export const NODE_ID = 'AXON-EDGE-01';
 
 const DOT: Record<HealthState, string> = { NORMAL: 'bg-ok', EARLY: 'bg-warn', CRITICAL: 'bg-crit' };
 const STATE_WORD: Record<HealthState, string> = { NORMAL: 'Normal', EARLY: 'Advisory', CRITICAL: 'Critical' };
@@ -45,8 +45,8 @@ export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onS
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-line bg-canvas px-3">
       <div className="flex items-baseline gap-2">
-        <span className="text-sm font-semibold tracking-tight text-zinc-100">Machynex</span>
-        <span className="font-mono text-[11px] text-zinc-500">v1.0-sim</span>
+        <span className="text-sm font-semibold tracking-tight text-zinc-100">AXON</span>
+        <span className="font-mono text-[11px] text-zinc-500">v1.0</span>
       </div>
 
       {(onModeChange || onToggleAxon) && (

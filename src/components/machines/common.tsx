@@ -76,7 +76,7 @@ export function useMachineMotion(sim: Simulator, slowMo: number, spinners: { ref
 }
 
 // ------------------------------------------------------------------ sensors snapped to the rig's tap points
-/** Machynex sensor hardware that rides on the vibrating machine (puck, contact probe, current sensor) and their harnesses */
+/** AXON sensor hardware that rides on the vibrating machine (puck, contact probe, current sensor) and their harnesses */
 export function MachineHardware({ rig, kit, braid }: { rig: RigLayout; kit: SensorKit; braid: THREE.Texture }) {
   const m = rig.mounts;
   const ct = useMemo(() => ctRoute(m.current), [m.current]);

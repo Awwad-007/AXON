@@ -1,4 +1,4 @@
-// Visual QA helper for the Machynex digital twin.
+// Visual QA helper for the AXON digital twin.
 //
 // Usage:  node scripts/qa-screenshots.mjs [url] [outDir] [assetLabel]
 //   assetLabel  optional machine to select first: "Bench rig" | "Induction" | "Pump" | "Gearbox"

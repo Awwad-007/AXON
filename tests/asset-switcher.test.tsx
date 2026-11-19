@@ -72,7 +72,7 @@ test('banner says NO HARDWARE CONNECTED and no longer claims a rig exists', () =
   const app = readFileSync(join(import.meta.dirname, '..', 'src', 'App.tsx'), 'utf8');
   const m = app.match(/BANNER_TEXT\s*=\s*'([^']+)'/);
   assert.ok(m, 'banner constant missing');
-  assert.equal(m![1], 'PROPOSED CONCEPT · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED');
+  assert.equal(m![1], 'AXON · MSME PREDICTIVE MAINTENANCE · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED');
   assert.match(app, /\{BANNER_TEXT\}/);
 });
 

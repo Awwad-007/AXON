@@ -1,4 +1,4 @@
-// Asset profiles: the same Machynex node and detection logic applied to different machines.
+// Asset profiles: the same AXON node and detection logic applied to different machines.
 // ALL NUMBERS ARE ILLUSTRATIVE. Only `bench-dc` is in the proposal's scope; the others are concept assets with
 // illustrative fault models that have not been validated against any real machine.
 //

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSimulator } from './sim/useSimulator';
 import { useWalkthrough } from './sim/walkthrough';
 import { makeShot } from './sim/shots';
@@ -19,8 +19,8 @@ import { useAgentFlow } from './sim/agentFlow';
 import { MockPhoneUI } from './components/MockPhoneUI';
 import { Tier1MicMode } from './components/Tier1MicMode';
 
-/** Honesty banner (CLAUDE.md §3.1). Always visible; tests/design-rules.test.ts asserts it is present. */
-export const BANNER_TEXT = 'PROPOSED CONCEPT · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED';
+/** Honesty banner. Always visible; tests/design-rules.test.ts asserts it is present. */
+export const BANNER_TEXT = 'AXON · MSME PREDICTIVE MAINTENANCE · SYNTHETIC TELEMETRY · NO HARDWARE CONNECTED';
 
 export default function App() {
   const { sim, snap, logs, paused, setPaused, muted, setMuted, alarms, setAlarms, unlock, resetSimulation, setAsset, appendLogs } = useSimulator();
@@ -56,6 +56,12 @@ export default function App() {
   }, [walk.active, stopWalkthrough, setAsset]);
 
   const [mode, setMode] = useState<AppMode>('axon-sim');
+
+  useEffect(() => {
+    if (mode === 'axon-sim') {
+      setAsset('compressor');
+    }
+  }, []);
 
   const handleModeChange = useCallback((next: AppMode) => {
     setMode(next);

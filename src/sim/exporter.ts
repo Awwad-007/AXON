@@ -18,7 +18,7 @@ export interface Capture {
 }
 
 const DISCLAIMER =
-  'SYNTHETIC DATA from the Machynex concept digital twin. No hardware was connected and nothing here was measured.';
+  'SYNTHETIC DATA from the AXON concept digital twin. No hardware was connected and nothing here was measured.';
 
 export function buildJson(cap: Capture, generatedAt: Date = new Date()): string {
   return JSON.stringify(

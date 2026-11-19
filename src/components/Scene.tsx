@@ -232,7 +232,7 @@ const Machine = memo(function Machine({ sim, slowMo, kit, hostRef, variant = 'dc
         </mesh>
       </group>
 
-      {/* ---------------- Machynex sensor hardware (stays opaque in X-ray) ---------------- */}
+      {/* ---------------- AXON sensor hardware (stays opaque in X-ray) ---------------- */}
       <MachineHardware rig={RIGS['bench-dc']} kit={kit} braid={braid} />
     </group>
   );
@@ -416,7 +416,7 @@ function World({ sim, slowMo, registry, shot, walkActive, kit, xray, asset, isAx
         </group>
       )}
 
-      {/* static Machynex hardware: edge node, 12 V adapter, (concept kit) IR pod on its bracket */}
+      {/* static AXON hardware: edge node, 12 V adapter, (concept kit) IR pod on its bracket */}
       <EdgeNode sim={sim} kit={kit} xray={xray} leds={leds} />
       <Box size={[0.8, 0.26, 0.5]} pos={[-1.9, FLOOR_Y + 0.13, 2.3]} color="#27272a" metal={0.2} rough={0.7} />
       <Cable points={HARNESS.supply} radius={0.025} />

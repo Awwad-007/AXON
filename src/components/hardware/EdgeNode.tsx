@@ -7,7 +7,7 @@ import { GLANDS, GLAND_LEN, NODE } from '../../sim/mounts';
 import type { SensorKit } from '../../sim/mounts';
 import { Box, Cyl, Selectable, useCanvasTexture } from './primitives';
 
-// Procedural IP65-style enclosure for the Machynex edge node (concept packaging: not in the proposed BOM).
+// Procedural IP65-style enclosure for the AXON edge node (concept packaging: not in the proposed BOM).
 // Hollow anodised-aluminium body, rubber gasket, tinted polycarbonate lid with hex fasteners, heatsink fins on the
 // right end wall, three PG-style nylon glands on the rear wall, DC inlet on the left wall. Inside: PCB with traces,
 // ESP32 module (shield can + antenna meander), status OLED, optocoupler across an isolation slot, cut-off element,
@@ -90,7 +90,7 @@ export const EdgeNode = memo(function EdgeNode({ sim, kit, xray, leds }: { sim: 
     g.font = '15px monospace';
     g.fillText('3V3 LOGIC', 220, 244);
     g.fillText('ISOLATED', 360, 244);
-    g.fillText('MNX-EDGE-01 REV A (CONCEPT)', 12, 20);
+    g.fillText('AXON-EDGE-01 REV A (CONCEPT)', 12, 20);
   }, [rand]);
 
   // shield can engraving
@@ -145,7 +145,7 @@ export const EdgeNode = memo(function EdgeNode({ sim, kit, xray, leds }: { sim: 
       g.fillStyle = '#e8eef2';
       g.font = 'bold 30px monospace';
       const name = st === 'NORMAL' ? 'NORMAL' : st === 'EARLY' ? 'EARLY WARN' : 'CRITICAL';
-      g.fillText('MNX-EDGE-01     SIM', 10, 34);
+      g.fillText('AXON-EDGE-01    SIM', 10, 34);
       g.fillText(`${name.padEnd(10)} ${L.vibMeas.toFixed(2)}mm/s`, 10, 76);
       g.fillText(`CUT ${L.relayClosed ? 'ON ' : 'OFF'}  tick 50ms`, 10, 118);
       oled.t.needsUpdate = true;

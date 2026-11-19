@@ -1,4 +1,4 @@
-/* Machynex design tokens. Flat surfaces, hairline borders, semantic colour only for system state. */
+/* AXON design tokens. Flat surfaces, hairline borders, semantic colour only for system state. */
 :root {
   --mx-canvas: #09090b;   /* app + 3D background (zinc-950) */
   --mx-panel: #121215;    /* panels, drawers, cards */

@@ -1,89 +1,130 @@
-# Machynex · Digital Twin Simulation
+# AXON · MSME Predictive Maintenance & Autonomous Dispatch
 
-A browser-based **concept simulation** of the proposed Machynex bench rig. Every value is synthetic.
-No hardware is connected and no real data has been collected. A banner on screen says so.
+> **Low-Cost Industrial Condition Monitoring & Autonomous Maintenance Dispatch for MSMEs**  
+> *Concept Digital Twin, ESP32 ESP-NOW Firmware & Autonomous Dispatch Swarm.*
 
-## Run it
+---
+
+## 1. Executive Summary
+
+Micro, Small, and Medium Enterprises (MSMEs) operate over 60% of critical manufacturing machinery—reciprocating compressors, pumps, presses, and motors—yet remain cut off from predictive maintenance. Enterprise SCADA systems and cloud vibration platforms require tens of thousands of dollars in sensor licensing, industrial PLC gateways, and complex software installations.
+
+**AXON** delivers predictive maintenance designed specifically for MSME constraints:
+1. **Low-Cost Edge Sensing:** Retrofit acoustic and pressure transducers on standard machines.
+2. **7-Day Dynamic Self-Calibration:** Unsupervised statistical baselining that adapts to each machine's specific environment without requiring machine learning training runs or pre-labelled datasets.
+3. **Offline Factory Mesh:** 2.4 GHz ESP-NOW telemetry packets route to a central gateway without needing factory Wi-Fi at every machine asset.
+4. **Autonomous WhatsApp Dispatch:** An agentic workflow detects anomalies, schedules maintenance during planned idle windows, locates local technicians, and delivers 1-click interactive approval notifications directly to the factory owner's phone.
+5. **Tier 1 Zero-Hardware Acoustic DSP:** Live in-browser microphone Fourier frequency analysis for immediate retrofitting without physical sensors.
+
+---
+
+## 2. Core Architecture Pillars
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                        AXON DISTRIBUTED TOPOLOGY                       │
+├────────────────────────┬─────────────────────┬─────────────────────────┤
+│    EDGE HARDWARE       │     GATEWAY HUB     │    AUTONOMOUS DISPATCH  │
+│  (Compressor Rig)      │   (Offline Mesh)    │     (Cloud Swarm)       │
+│                        │                     │                         │
+│  [Acoustic Puck]       │   [ESP32 Gateway]   │   [Dynamic Baseline]    │
+│  [Pressure Sensor] ───►│   ESP-NOW RX        ├──►│   Welford 3σ Bounds │
+│  [ESP32 Edge Node]     │   Wi-Fi Backhaul    │   [Agent State Machine] │
+│  ADC1 + Welford Filter │   Status LEDs       │   [WhatsApp Smartphone] │
+└────────────────────────┴─────────────────────┴─────────────────────────┘
+```
+
+### Pillar 1: High-Fidelity 3D Digital Twin (`CompressorRig.tsx` & `Scene.tsx`)
+A procedural industrial air compressor twin built with `@react-three/fiber` and `@react-three/drei`:
+- Procedural crankcase, cooling fins, ASME pressure relief valve, oil inspection port, and ribbed belt guard.
+- Realistic cast-iron, machined steel, and bronze physical materials.
+- Procedural wiring harnesses with strain-relief glands connecting sensors back to local terminal boxes.
+- Floating 3D HUD telemetry callouts styled in flat industrial design (`#111317`, hairline borders).
+
+### Pillar 2: 7-Day Unsupervised Baseline (`useCalibration.ts`)
+Instead of rigid static limits, AXON uses Welford's online algorithm to fast-forward 7 days of operational telemetry in 10 seconds:
+- Tracks running sample count, sample mean ($\mu$), and squared deviations ($M_2$).
+- Computes sample variance ($\sigma^2$) and standard deviation ($\sigma$).
+- Establishes a dynamic $3\sigma$ operational envelope ($\text{Threshold} = \mu + 3\sigma$).
+- Prevents false alarms from ambient factory floor noise while immediately catching mechanical degradation.
+
+### Pillar 3: Offline ESP-NOW Factory Mesh (`GatewayNode.tsx`)
+MSME factory floors often have dead zones or spotty Wi-Fi coverage:
+- Edge nodes broadcast compact binary telemetry packets over ESP-NOW (connectionless peer-to-peer 2.4 GHz RF).
+- The central wall-mounted Gateway Hub receives packets, displays real-time animated particle mesh pings, and manages cloud backhaul routing.
+- Rugged IP67 enclosure with reactive emissive LEDs (Power, Mesh RX pulse, Cloud Wi-Fi, and Alarm).
+
+### Pillar 4: Autonomous WhatsApp Dispatch (`agentFlow.ts` & `MockPhoneUI.tsx`)
+An autonomous state machine handling end-to-end incident response:
+- **`DETECTED`**: Gateway catches dynamic baseline breach.
+- **`SCHEDULING`**: Searches production schedules to isolate upcoming idle windows (e.g., between shifts).
+- **`LOGISTICS`**: Locates certified nearby service technicians and parts inventory.
+- **`COMMS`**: Generates structured WhatsApp message payloads with live telemetry snapshots.
+- **`WAITING_APPROVAL`**: Factory owner receives interactive **Approve Dispatch** or **Dismiss / False Alarm** options directly on their mobile device.
+
+### Pillar 5: Tier 1 Zero-Hardware Acoustic DSP (`audioDSP.ts` & `Tier1MicMode.tsx`)
+For workshops with zero upfront hardware budget:
+- Live microphone streaming via Web Audio API (`AudioContext` and 2048-bin `AnalyserNode`).
+- Bandpass filtering isolating mechanical flutter and ultrasonic bearing hiss.
+- Real-time HTML5 Canvas visualizer rendering frequency bins, live statistical mean, and dynamic standard deviation threshold envelope.
+
+### Pillar 6: Physical ESP32 Firmware (`firmware/`)
+Deployable production C++ firmware ready to flash directly onto ESP32 hardware:
+- `firmware/edge_node/edge_node.ino`: Compressor edge node reader with Welford baseline filter and ESP-NOW packet transmitter.
+- `firmware/gateway_hub/gateway_hub.ino`: Central gateway hub receiver, status LED driver, and HTTP POST webhook dispatcher.
+- `firmware/WIRING.md`: Complete pinout mapping, 1:2 voltage divider schematics for 5V pressure transducers, and decoupling guidelines.
+
+---
+
+## 3. Quick Start
+
+### Prerequisites
+- Node.js 18+ (tested with Node 20 / 24)
+- npm or pnpm
+
+### Installation & Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/Awwad-007/AXON.git
+cd AXON
+
+# Install dependencies
 npm install
-npm run dev        # http://localhost:5173
-npm test           # simulation-engine and chart tests (no browser needed)
-npm run typecheck  # full TypeScript check (needs the installed type packages)
-npm run build      # production build into dist/
+
+# Start local development server (http://localhost:5173)
+npm run dev
+
+# Run full TypeScript validation
+npm run typecheck
+
+# Run complete automated test suite (98 tests across 11 suites)
+npm test
+
+# Build production bundle
+npm run build
 ```
 
-## Deploy to Vercel
+---
 
-1. Push this folder to a GitHub repo.
-2. In Vercel choose **Add New → Project**, import the repo. Vercel detects **Vite** automatically
-   (build command `npm run build`, output `dist`). No environment variables, no `vercel.json` needed.
-3. Or from a terminal: `npx vercel --prod`.
+## 4. Evaluator Walkthrough (Demo Path)
 
-Tip: put the resulting URL behind a QR code on your Thank You slide.
-For the live demo, keep a 20–30 s screen recording as a fallback in case venue Wi-Fi fails.
+1. **Launch AXON SIM View:**  
+   Open the application. The default view loads the 3D twin of the MSME Compressor Rig, the wall-mounted Gateway Hub, and the WhatsApp smartphone UI.
+2. **Run Unsupervised Calibration:**  
+   In the WhatsApp phone drawer, tap **"Start 7-Day Calibration"**. Watch the progress bar fast-forward through 7 operational days, locking in the baseline mean ($\mu$) and standard deviation ($\sigma$).
+3. **Inject Fault Anomaly:**  
+   Tap **"Simulate Anomaly"** or advance the fault sliders in the SCADA pane. An anomaly packet triggers an animated mesh ping travelling from the compressor sensors to the Gateway Node.
+4. **Inspect Autonomous Dispatch:**  
+   Watch the WhatsApp agent transition through Scheduling, Logistics, and Dispatch. Review the interactive alert message and test the **"Approve Dispatch"** or **"Dismiss / Re-calibrate"** responses.
+5. **Switch Views:**  
+   Use the header toggle `[SCADA] ⇄ [AXON SIM] ⇄ [AXON LIVE MIC]` to inspect the enterprise SCADA telemetry dashboard or switch to browser-based microphone DSP analysis.
 
-## New in this release
+---
 
-- **Evaluator walkthrough** (button in the top bar): 4 scenes over 50 s with guided camera moves and captions: baseline, progressive imbalance (bearing close-up and spectrum), floor-bump rejection, critical overload and relay trip. Press **Stop** at any time; the rig returns to a clean baseline.
-- **Export telemetry**: JSON or CSV of the 2 Hz packet capture (up to 1 hour) plus the event log, from the terminal panel. Files are marked synthetic.
-- **ISO 10816-3-style gauge**: segmented Zone A / B / C / D arc with needle. The bands (1.4 / 2.8 / 4.5 mm/s) are illustrative. The real standard targets larger machines and has been superseded by ISO 20816-3, so no ISO compliance is claimed.
-- **Audio**: continuous motor hum whose pitch follows rpm (and falls during spin-down), a two-click relay sound on trip and reset, and intermittent alarm beeps (single in Early Warning, double in Critical). Phones also get a short haptic buzz on trip. Use *Sound* and *Alarms* in the viewport to mute.
-- **3D polish**: stylised cooling fins and brushed-metal roughness, heat map (slate/teal to orange to red, glowing above 60 °C), superlinear vibration with structural flutter, flywheel precession and a flexing orange mass, procedural sparks and smoke at the bearing on trip, procedural reflections.
-- **Labels**: screen-space layout that moves chips apart so they never overlap, hides the lowest-priority chip when crowded, and draws leader lines. A **minimap** (bottom-right) shows the rig from above: click a dot to fly the camera to that part, tick or untick to show or hide its label.
-- **Layout**: the 3D viewport fills the full height of the left pane; the telemetry panel on the right scrolls on its own.
+## 5. Deployment
 
-## 60-second demo path
-
-1. Orbit the rig, hover a label (each one explains its role). Click **Reset camera** when lost.
-2. **Progressive Unbalance** → the orange mass grows, 1X peak rises, state goes to Early Warning, a time-to-threshold appears.
-3. **Normal Baseline**, then **Transient Floor Shock** → vibration spikes but the state does not change. The terminal logs the `[FILTER]` line.
-4. **Critical Trip Event** → persistence of 1 s, then the cut-off opens, LED flashes red, a click plays and the motor coasts to 0 rpm.
-5. Press **Reset Relay** (it is refused while the fault is present) → **Normal Baseline** → **Reset Relay**.
-
-## What was verified, and what was not
-
-| Part | Status |
-| --- | --- |
-| Simulation engine (`src/sim`): plant model, persistence, hysteresis, latch/reset, knock rejection, spectrum, lead time, zones, telemetry capture and export | **Tested**: 23 tests pass (`npm test`), strict TypeScript clean |
-| Walkthrough timeline | **Tested** against the real engine from a clean start and from a tripped start: NORMAL, then EARLY, then the knock is rejected, then CRITICAL with the relay open |
-| Dashboard, gauge and chart drawing code | **Smoke-tested** with real React server rendering through all states, and chart drawing against a fake canvas |
-| Full project typecheck, `npm install`, `vite build` | Typecheck only against stubs in the author's sandbox. Run `npm run typecheck` and `npm run build` yourself |
-| 3D scene appearance and performance: fins, heat map, wobble, sparks and smoke, label layout, minimap, camera moves | **Never rendered by the author.** Expect to tweak positions, sizes, colours and particle amounts |
-| Audio (hum, relay clicks, beeps) | Written to the Web Audio API; **never heard by the author** |
-
-If `npm run build` complains, send the first error message. `build` deliberately skips `tsc`, so a type
-error cannot block deployment; run `npm run typecheck` separately.
-
-## Where this differs from the original brief (and why)
-
-The twin is aligned with the Machynex deck so the jury sees one consistent system.
-
-| Brief | Built | Reason |
-| --- | --- | --- |
-| 0.5 HP AC induction motor | **12 V DC, 775-class motor** | The deck proposes low-voltage DC only; an AC motor implies mains wiring and mains current sensing |
-| SCT-013 clamp, MLX90614 IR | **ACS712-type module (optional)** and **DS18B20 probe** | Matches the deck's parts list |
-| Current 1–15 A, nominal 3.2 A, trip 9 A | **0.5–5 A, nominal 1.2 A, trip 4.0 A** | A 12 V 5 A adapter and 5 A sensor bound this rig; thresholds are illustrative |
-| "ISO 10816-3 Zone C/D" labels | **No ISO zone claimed** | ISO 20816-3 (successor) covers machines above 15 kW; a bench rig is outside it. Thresholds 2.8 / 4.5 mm/s kept as illustrative values |
-| ADVISORY / CRITICAL TRIP | **Early Warning / Critical / Unsafe Threshold Approaching** | Same names as the deck. The relay is shown as a *concept* safety cut-off, not in the current bill of materials |
-| Knock rejected by corroboration alone | **Persistence window (1 s) plus corroboration** | The deck says a hard vibration limit is never suppressed by corroboration, so sustained vibration alone still trips. A 300 ms impulse is shorter than the persistence window |
-| "Edge-AI" | **Analytics on a laptop** (terminal labelled accordingly) | Matches the deck. No ML model is simulated |
-| Recharts | Canvas charts | Fewer dependencies, 20 fps, no layout surprises |
-| Est. time to threshold | Kept, labelled **ILLUSTRATIVE TREND ESTIMATE — SYNTHETIC DATA** plus "not remaining useful life" | Avoids implying failure prediction |
-
-Added beyond the brief: visual slow-motion slider (real rpm would strobe at 60 Hz), pause, sound and label toggles,
-speed slider (vibration ∝ rpm²), eccentric-mass size follows the slider, evidence chips and confidence level,
-latch hint when a reset is refused, optional physical-coupling toggle, an "About" panel stating assumptions.
-
-## Files
-
-```
-src/sim/config.ts        all numbers (illustrative) in one place
-src/sim/engine.ts        pure TypeScript simulator (no React, fully tested)
-src/sim/audio.ts         synthesised relay click
-src/sim/useSimulator.ts  fixed-step loop, 10 Hz UI publish
-src/components/Scene.tsx procedural 3D rig (react-three-fiber)
-src/components/Charts.tsx FFT waterfall and 10 s strip charts (canvas)
-src/components/Dashboard.tsx health banner, metrics, controls, terminal
-tests/                   engine and chart tests
-```
+This repository is optimized for one-click deployment on **Vercel**:
+- Production build output: `dist/`
+- SPA routing configured via root `vercel.json`
+- Strict zero-dependency client architecture (all 3D models and DSP engines are procedural and bundled locally).

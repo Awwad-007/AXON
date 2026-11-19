@@ -1,5 +1,5 @@
 // All numbers here are ILLUSTRATIVE. Nothing is measured. Real limits would come
-// from baseline runs on the real rig (see the Machynex deck, slides 7-8).
+// from baseline runs on the real rig (see the AXON deck, slides 7-8).
 
 export const CONFIG = {
   tickS: 0.05, // fixed simulation step (20 Hz)

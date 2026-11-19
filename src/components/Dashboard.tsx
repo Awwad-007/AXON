@@ -337,8 +337,8 @@ export function EdgeTerminal({ logs, sim }: { logs: LogLine[]; sim: Simulator })
       <div className="mb-2 flex flex-wrap items-center justify-end gap-3 text-[11px] text-zinc-500">
         <span className="mr-auto flex items-center gap-1.5">
           Export
-          <button className={btn} onClick={() => downloadText(`machynex-synthetic-telemetry-${stamp()}.json`, buildJson(sim.getCapture()), 'application/json')}>JSON</button>
-          <button className={btn} onClick={() => downloadText(`machynex-synthetic-telemetry-${stamp()}.csv`, buildCsv(sim.getCapture(), { includeAsset: true }), 'text/csv')}>CSV</button>
+          <button className={btn} onClick={() => downloadText(`axon-synthetic-telemetry-${stamp()}.json`, buildJson(sim.getCapture()), 'application/json')}>JSON</button>
+          <button className={btn} onClick={() => downloadText(`axon-synthetic-telemetry-${stamp()}.csv`, buildCsv(sim.getCapture(), { includeAsset: true }), 'text/csv')}>CSV</button>
         </span>
         <label className="flex cursor-pointer items-center gap-1"><input type="checkbox" checked={hidePackets} onChange={(e) => setHidePackets(e.target.checked)} />events only</label>
         <label className="flex cursor-pointer items-center gap-1"><input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} />auto-scroll</label>
@@ -379,7 +379,7 @@ export function About() {
   const [open, setOpen] = useState(false);
   return (
     <Section title="What this is, and what it is not" right={<button className="text-[11px] text-zinc-400 hover:text-zinc-100" onClick={() => setOpen(!open)}>{open ? 'Hide' : 'Show'}</button>}>
-      <p className="text-xs text-zinc-400">A concept visualisation for the Machynex proposal. Every value is synthetic and no hardware is connected.</p>
+      <p className="text-xs text-zinc-400">A concept visualisation for AXON MSME Predictive Maintenance. Every value is synthetic and no hardware is connected.</p>
       {open && (
         <ul className="mt-2 list-disc space-y-1.5 pl-4 text-[11px] leading-snug text-zinc-400">
           <li>The bench rig matches the proposal: 12 V DC motor (775-class), MPU6050 accelerometer, DS18B20 temperature probe, optional ACS712-type current module, ESP32 acquisition node. The safety cut-off and indicator LEDs are a concept add-on and are not in the current bill of materials.</li>
@@ -429,7 +429,7 @@ export function DashboardPane({ sim, snap, logs, onUserGesture, slowMo, onSlowMo
         {P.spectrum.model === 'cavitation' && <p className="mt-2 text-[10px] leading-snug text-zinc-500">Concept — needs a wider-bandwidth sensor: real cavitation energy extends well above the ~500 Hz bandwidth of the proposed MPU6050.</p>}
         {P.spectrum.model === 'pitting' && <p className="mt-2 text-[10px] leading-snug text-zinc-500">GMF = pinion teeth × shaft Hz with {P.gear!.pinionTeeth} pinion teeth (assumed, illustrative). Axis 0–500 Hz stays below the ~500 Hz Nyquist of a 1 kHz sensor.</p>}
       </Section>
-      <Section title="Machynex hardware" right={<span className="font-mono text-[10px] text-zinc-600">{kit === 'bench' ? 'bench kit' : P.scope === 'concept' ? 'industrial kit · concept' : 'industrial kit · preview'} · click to inspect</span>}>
+      <Section title="AXON hardware" right={<span className="font-mono text-[10px] text-zinc-600">{kit === 'bench' ? 'bench kit' : P.scope === 'concept' ? 'industrial kit · concept' : 'industrial kit · preview'} · click to inspect</span>}>
         <HardwareList kit={kit} onInspect={onInspect} />
       </Section>
       <Section title="Rolling history" right={<span className="font-mono text-[10px] text-zinc-600">10 s · synthetic</span>}>
@@ -442,7 +442,7 @@ export function DashboardPane({ sim, snap, logs, onUserGesture, slowMo, onSlowMo
         <EdgeTerminal logs={logs} sim={sim} />
       </Section>
       <About />
-      <div className="font-mono pb-4 text-center text-[10px] text-zinc-600">Machynex concept simulation · synthetic data · no hardware connected</div>
+      <div className="font-mono pb-4 text-center text-[10px] text-zinc-600">AXON concept simulation · synthetic data · no hardware connected</div>
     </div>
   );
 }
