@@ -181,39 +181,34 @@ export default function App() {
               selectedComponentId={selectedHardwareId}
               onSelectComponent={handleSelectHardware}
             />
-            <div className="pointer-events-none absolute left-3 top-14 z-30 flex flex-col gap-2 w-[240px]">
+            <div className="pointer-events-none absolute left-3 top-14 z-30 w-[195px]">
               <AxonHardwareBar
                 selectedId={selectedHardwareId}
                 onSelect={handleSelectHardware}
                 sim={sim}
                 onResetFocus={() => handleSelectHardware(null)}
               />
-              {showDemoGuide && !walk.active && (
-                <div className="pointer-events-auto w-full rounded-md border border-line bg-panel p-2.5 font-mono text-[11px]">
-                  <div className="mb-2 flex items-center justify-between border-b border-line pb-1.5">
-                    <span className="font-semibold tracking-wider text-zinc-200">HOW TO DEMO AXON</span>
-                    <button
-                      onClick={() => setShowDemoGuide(false)}
-                      className="rounded-sm p-0.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-                      aria-label="Dismiss demo guide"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                  <ol className="space-y-1.5 text-[10px] leading-relaxed text-zinc-400">
-                    <li>
-                      <span className="font-semibold text-acc">Step 1:</span> Click <b className="text-zinc-200">Calibrate 7-Day</b> (bottom right) to learn the machine's baseline.
-                    </li>
-                    <li>
-                      <span className="font-semibold text-amber-400">Step 2:</span> Click <b className="text-zinc-200">Test Anomaly</b> to fire an ESP-NOW mesh ping to the gateway.
-                    </li>
-                    <li>
-                      <span className="font-semibold text-emerald-400">Step 3:</span> Reply <b className="text-zinc-200">Yes</b> (books mechanic &amp; resets) or <b className="text-zinc-200">No</b> (widens baseline) in the phone.
-                    </li>
-                  </ol>
-                </div>
-              )}
             </div>
+            {showDemoGuide && !walk.active && (
+              <div className="pointer-events-auto absolute bottom-14 left-1/2 z-30 -translate-x-1/2 flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-1.5 font-mono text-[10px] whitespace-nowrap">
+                <span className="text-zinc-500 font-semibold tracking-wider uppercase">DEMO:</span>
+                <span className="text-acc font-semibold">1.</span>
+                <span className="text-zinc-300">Click <b className="text-zinc-100">Calibrate 7-Day</b></span>
+                <span className="text-zinc-600">→</span>
+                <span className="text-amber-400 font-semibold">2.</span>
+                <span className="text-zinc-300">Click <b className="text-zinc-100">Test Anomaly</b></span>
+                <span className="text-zinc-600">→</span>
+                <span className="text-emerald-400 font-semibold">3.</span>
+                <span className="text-zinc-300">Reply <b className="text-zinc-100">Yes</b> / <b className="text-zinc-100">No</b> on Phone</span>
+                <button
+                  onClick={() => setShowDemoGuide(false)}
+                  className="ml-1 rounded-sm p-0.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                  aria-label="Dismiss demo guide"
+                >
+                  <X size={11} />
+                </button>
+              </div>
+            )}
             <MockPhoneUI
               msgs={agent.msgs}
               typing={agent.typing}
