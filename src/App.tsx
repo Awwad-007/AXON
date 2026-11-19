@@ -181,14 +181,16 @@ export default function App() {
               selectedComponentId={selectedHardwareId}
               onSelectComponent={handleSelectHardware}
             />
-            <div className="pointer-events-none absolute left-3 top-14 z-30 w-[195px]">
-              <AxonHardwareBar
-                selectedId={selectedHardwareId}
-                onSelect={handleSelectHardware}
-                sim={sim}
-                onResetFocus={() => handleSelectHardware(null)}
-              />
-            </div>
+            {!walk.active && (
+              <div className="pointer-events-none absolute left-3 top-14 z-30 w-[195px]">
+                <AxonHardwareBar
+                  selectedId={selectedHardwareId}
+                  onSelect={handleSelectHardware}
+                  sim={sim}
+                  onResetFocus={() => handleSelectHardware(null)}
+                />
+              </div>
+            )}
             {showDemoGuide && !walk.active && (
               <div className="pointer-events-auto absolute bottom-14 left-1/2 z-30 -translate-x-1/2 flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-1.5 font-mono text-[10px] whitespace-nowrap">
                 <span className="text-zinc-500 font-semibold tracking-wider uppercase">DEMO:</span>
