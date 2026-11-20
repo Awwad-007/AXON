@@ -1,4 +1,4 @@
-import { Play, RotateCcw, ScanEye, Square } from 'lucide-react';
+import { Github, Play, RotateCcw, ScanEye, Square } from 'lucide-react';
 import type { HealthState } from '../sim/engine';
 import type { ShotName } from '../sim/shots';
 import type { SensorKit } from '../sim/mounts';
@@ -86,7 +86,19 @@ export function HeaderBar({ state, activeShot, onFocus, onReset, walkActive, onS
         <span className="hidden font-mono text-[11px] text-zinc-500 2xl:inline">· {STATE_WORD[state]}</span>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="mx-auto flex items-center">
+        <a
+          href="https://github.com/Awwad-007/AXON"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] bg-[#10b981] px-4 py-1.5 text-xs font-bold tracking-wider text-[#09090b] transition-colors hover:bg-[#34d399]"
+        >
+          <Github size={13} strokeWidth={2.5} className="shrink-0" />
+          <span>GO TO GITHUB REPO!!!</span>
+        </a>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
         {/* below 1500 px the presets + X-ray collapse into one View menu so no label is ever truncated */}
         <div className="min-[1500px]:hidden">
           <ViewMenu presets={cameraPresets(kit)} activeShot={activeShot} onFocus={onFocus} xray={xray} onXray={onXray} />
