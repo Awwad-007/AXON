@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { ChevronDown, Info } from 'lucide-react';
-import { ASSETS, ASSET_IDS } from '../sim/assets';
+import { ASSETS, ASSET_IDS, AXON_ASSET_IDS } from '../sim/assets';
 import type { AssetId } from '../sim/assets';
 
 // Slim machine selector docked at the top centre of the 3D canvas.
@@ -14,7 +14,6 @@ export const ASSET_SHORT: Record<AssetId, string> = {
   'helical-gearbox': 'Gearbox',
   'compressor': 'Compressor',
 };
-
 /** long explanation shown only inside the (i) popover */
 export const CONCEPT_ASSET_TEXT = 'Illustrative fault model. Not validated. Industrial-retrofit sensor kit is not in the proposed bill of materials.';
 export const KIT_PREVIEW_TEXT =
@@ -34,6 +33,8 @@ interface Props {
   kitPreview?: boolean;
   /** start with the (i) popover open (server-render tests only) */
   initialInfoOpen?: boolean;
+  /** AXON SIM mode: use the 5-asset list (compressor + 4 others) */
+  axonMode?: boolean;
 }
 
 function useDismiss(open: boolean, close: () => void, ref: React.RefObject<HTMLElement>) {
@@ -48,7 +49,7 @@ function useDismiss(open: boolean, close: () => void, ref: React.RefObject<HTMLE
 }
 
 /** four radios with roving tabindex; Left/Right move and select */
-function Radios({ asset, onChange, disabled, onPicked }: { asset: AssetId; onChange: (id: AssetId) => void; disabled: boolean; onPicked?: () => void }) {
+function Radios({ asset, onChange, disabled, onPicked, ids }: { asset: AssetId; onChange: (id: AssetId) => void; disabled: boolean; onPicked?: () => void; ids: AssetId[] }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const pick = (id: AssetId) => {
     if (disabled) return;
@@ -58,13 +59,13 @@ function Radios({ asset, onChange, disabled, onPicked }: { asset: AssetId; onCha
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
     if (disabled || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
     e.preventDefault();
-    const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + ASSET_IDS.length) % ASSET_IDS.length;
+    const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + ids.length) % ids.length;
     refs.current[n]?.focus();
-    pick(ASSET_IDS[n]);
+    pick(ids[n]);
   };
   return (
     <>
-      {ASSET_IDS.map((id, i) => {
+      {ids.map((id, i) => {
         const on = id === asset;
         return (
           <button
@@ -88,7 +89,7 @@ function Radios({ asset, onChange, disabled, onPicked }: { asset: AssetId; onCha
   );
 }
 
-export function AssetSwitcher({ asset, onChange, disabled = false, compact = false, kitPreview = false, initialInfoOpen = false }: Props) {
+export function AssetSwitcher({ asset, onChange, disabled = false, compact = false, kitPreview = false, initialInfoOpen = false, axonMode = false }: Props) {
   const [menu, setMenu] = useState(false);
   const [info, setInfo] = useState(initialInfoOpen);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -97,6 +98,7 @@ export function AssetSwitcher({ asset, onChange, disabled = false, compact = fal
   useDismiss(info, () => setInfo(false), infoRef);
   useEffect(() => { if (disabled) setMenu(false); }, [disabled]);
 
+  const ids = axonMode ? AXON_ASSET_IDS : ASSET_IDS;
   const concept = ASSETS[asset].scope === 'concept';
   const marker = concept ? 'CONCEPT' : kitPreview ? 'KIT PREVIEW' : null;
   const markerText = concept ? CONCEPT_ASSET_TEXT : KIT_PREVIEW_TEXT;
@@ -118,7 +120,7 @@ export function AssetSwitcher({ asset, onChange, disabled = false, compact = fal
           </button>
           {menu && (
             <div role="radiogroup" aria-label="Machine" className="absolute left-1/2 top-full z-20 mt-1 flex -translate-x-1/2 flex-col overflow-hidden rounded-md border border-line bg-panel py-0.5 [&>button]:h-7 [&>button]:border-l-0 [&>button]:text-left">
-              <Radios asset={asset} onChange={onChange} disabled={disabled} onPicked={() => setMenu(false)} />
+              <Radios asset={asset} onChange={onChange} disabled={disabled} onPicked={() => setMenu(false)} ids={ids} />
             </div>
           )}
         </div>
@@ -130,7 +132,7 @@ export function AssetSwitcher({ asset, onChange, disabled = false, compact = fal
           title={disabled ? WALK_LOCK_TIP : undefined}
           className="flex h-7 items-stretch overflow-hidden rounded-md border border-line bg-panel"
         >
-          <Radios asset={asset} onChange={onChange} disabled={disabled} />
+          <Radios asset={asset} onChange={onChange} disabled={disabled} ids={ids} />
         </div>
       )}
 

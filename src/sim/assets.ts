@@ -10,6 +10,8 @@ import type { SensorKit } from './mounts';
 
 export type AssetId = 'bench-dc' | 'induction-05hp' | 'slurry-pump' | 'helical-gearbox' | 'compressor';
 export const ASSET_IDS: AssetId[] = ['bench-dc', 'induction-05hp', 'slurry-pump', 'helical-gearbox'];
+/** Full list including AXON compressor, used by the AXON SIM machine switcher */
+export const AXON_ASSET_IDS: AssetId[] = ['compressor', 'bench-dc', 'induction-05hp', 'slurry-pump', 'helical-gearbox'];
 
 export const CONCEPT_ASSET_TAG = 'CONCEPT · illustrative fault model · not validated';
 

@@ -21,6 +21,7 @@ export interface ChatMsg {
 export interface AgentFlowProps {
   anomaly: boolean;
   reason: string;
+  machineName?: string;
   onApprove: () => void;
   onReject: () => void;
 }
@@ -34,7 +35,7 @@ const getTimeStr = () => {
  * Headless Cloud Swarm Agent State Machine (AXON MSME).
  * Manages autonomous fault verification, idle window scheduling, logistics dispatch, and user approval.
  */
-export function useAgentFlow({ anomaly, reason, onApprove, onReject }: AgentFlowProps) {
+export function useAgentFlow({ anomaly, reason, machineName = 'MSME Compressor C-01', onApprove, onReject }: AgentFlowProps) {
   const [step, setStep] = useState<AgentStep>('IDLE');
   const [typing, setTyping] = useState(false);
   const [msgs, setMsgs] = useState<ChatMsg[]>([
@@ -47,7 +48,7 @@ export function useAgentFlow({ anomaly, reason, onApprove, onReject }: AgentFlow
     {
       id: 'm-welcome',
       sender: 'agent',
-      text: 'Monitoring MSME Compressor C-01. All telemetry normal within dynamic baseline.',
+      text: `Monitoring ${machineName}. All telemetry normal within dynamic baseline.`,
       time: getTimeStr(),
     },
   ]);
@@ -81,7 +82,7 @@ export function useAgentFlow({ anomaly, reason, onApprove, onReject }: AgentFlow
               const alertMsg: ChatMsg = {
                 id: `m-alert-${Date.now()}`,
                 sender: 'agent',
-                text: `[ALERT] Compressor C-01 variance detected: ${reason || 'Acoustic & pressure deviation'}.\n\n` +
+                text: `[ALERT] ${machineName} variance detected: ${reason || 'Acoustic & pressure deviation'}.\n\n` +
                   `Auto-Analysis:\n` +
                   `- Shift window: 14:00 - 16:00 (Zero production impact)\n` +
                   `- Assigned Tech: Ramesh K. (4.9 rating, 3.2 km away)\n` +

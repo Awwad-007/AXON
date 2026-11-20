@@ -107,9 +107,20 @@ export default function App() {
   const isAxonSim = mode === 'axon-sim';
   const dyn = isAxonSim ? calib.isDynamicAnomaly(snap) : { anomaly: false, reason: '' };
 
+  // Human-readable machine names for the WhatsApp agent alerts
+  const MACHINE_LABEL: Record<string, string> = {
+    'compressor': 'MSME Compressor C-01',
+    'bench-dc': 'Bench Rig B-01',
+    'induction-05hp': 'Induction Motor M-01',
+    'slurry-pump': 'Centrifugal Pump P-01',
+    'helical-gearbox': 'Industrial Gearbox G-01',
+  };
+  const machineName = MACHINE_LABEL[snap.asset] ?? 'Machine';
+
   const agent = useAgentFlow({
     anomaly: isAxonSim ? dyn.anomaly : snap.state !== 'NORMAL',
     reason: isAxonSim ? dyn.reason : snap.stateLabel,
+    machineName,
     onApprove: useCallback(() => {
       sim.setTarget('severity', 0);
       sim.resetRelay();

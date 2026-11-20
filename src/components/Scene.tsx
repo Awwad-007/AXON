@@ -380,7 +380,8 @@ function ActiveMachine({
   selectedId?: string | null;
   onSelectId?: (id: string | null) => void;
 }) {
-  if (isAxon || asset === 'compressor') {
+  // Compressor always renders CompressorRig (whether explicitly selected or as AXON default)
+  if (asset === 'compressor') {
     return (
       <CompressorRig
         key="compressor"
@@ -647,6 +648,7 @@ export function Viewport({
             disabled={walk.active}
             compact={width > 0 && width < 900}
             kitPreview={ASSETS[snap.asset].scope === 'proposal' && kit === 'industrial'}
+            axonMode={isAxon}
           />
         </div>
         <div className="flex items-center gap-1.5 justify-self-end">
